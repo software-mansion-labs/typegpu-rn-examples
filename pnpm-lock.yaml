@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@typegpu/noise':
         specifier: ^0.0.3
-        version: 0.0.3(typegpu@0.4.5)
+        version: 0.0.3(typegpu@0.4.6)
       expo:
         specifier: ~52.0.37
         version: 52.0.37(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(react-native@0.76.7(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
@@ -24,11 +24,14 @@ importers:
         specifier: ^0.1.23
         version: 0.1.23(react-native@0.76.7(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
       typegpu:
-        specifier: 0.4.5
-        version: 0.4.5
+        specifier: 0.4.6
+        version: 0.4.6
       unplugin-typegpu:
-        specifier: 0.1.0-alpha.3
-        version: 0.1.0-alpha.3
+        specifier: 0.1.0-alpha.4
+        version: 0.1.0-alpha.4
+      wgpu-matrix:
+        specifier: ^3.3.0
+        version: 3.3.0
     devDependencies:
       '@babel/core':
         specifier: ^7.25.2
@@ -3160,12 +3163,12 @@ packages:
   through@2.3.8:
     resolution: {integrity: sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==}
 
-  tinyest-for-wgsl@0.1.0-alpha.2:
-    resolution: {integrity: sha512-VJjfqDjXES4tsnqZ6NbF5i1XCdtMS5Vihm2WUqrSwhEjXZ7pBmMoP7MXrUfbEEK7l1b4lW4X7WyysrHEpBymaw==}
+  tinyest-for-wgsl@0.1.0-alpha.4:
+    resolution: {integrity: sha512-s84QNtbJejjkI0ojOuJFqoSZcvpG17axxDultK6cYt7Uv/WXW5gYYUJn135pItAMhyZyYvIQQ6F1aXQMV3Zb9g==}
     engines: {node: '>=12.20.0'}
 
-  tinyest@0.1.0-alpha.3:
-    resolution: {integrity: sha512-QLtpj8McYtcYT9g4dNW/b8vPsWkPdrIdqNugvyD47Y7yDx9AWEh6ZojsWDwqk3kvChCK2BYOE2MIMJabwgzEPw==}
+  tinyest@0.1.0-alpha.4:
+    resolution: {integrity: sha512-s+cndC8E+icfzHMq/exGIMCHcNlu7ULGSLQUCIWb4ZrRilEDKdkYnUhgChqQSSVXCT36VY9k6H9CGbcyi2Aa6g==}
     engines: {node: '>=12.20.0'}
 
   tmp@0.0.33:
@@ -3211,8 +3214,8 @@ packages:
   typed-binary@4.3.2:
     resolution: {integrity: sha512-HT3pIBM2njCZUmeczDaQUUErGiM6GXFCqMsHegE12HCoBtvHCkfR10JJni0TeGOTnLilTd6YFyj+YhflqQDrDQ==}
 
-  typegpu@0.4.5:
-    resolution: {integrity: sha512-KYIwOGoGTdr4qPjALJSpX+4Y0LDrlOLyk2qNryLejuYH+sMVcqDHUIotL5XvD9EWNMGJzr2tzyVdRPs2tLzv+g==}
+  typegpu@0.4.6:
+    resolution: {integrity: sha512-goTO4JTYLfe7SIQ2lFrxiju1Ap/WBxWUihE7V3BOxqfi7Bick8tFZdwSjw+QAxw7h4NaAqzqlPIY0pdte4LawA==}
     engines: {node: '>=12.20.0'}
 
   typescript@5.8.2:
@@ -3275,8 +3278,8 @@ packages:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
     engines: {node: '>= 0.8'}
 
-  unplugin-typegpu@0.1.0-alpha.3:
-    resolution: {integrity: sha512-kullTx0ClXN28M1N9X+HiJErSQsMjt0jQ5A60RT6B5x2guCXd9tQFwjXG78sWjeYDcxvDGR86hYxD4xMX4c52g==}
+  unplugin-typegpu@0.1.0-alpha.4:
+    resolution: {integrity: sha512-/sPjMasEawloVbPVCnth7/gm00n2ubhc2EHJMQFnd8UFOhU/1hiYBReTNjHIjZSpFTE+Q3tr98qNmvsj5i89Zg==}
 
   unplugin@2.2.0:
     resolution: {integrity: sha512-m1ekpSwuOT5hxkJeZGRxO7gXbXT3gF26NjQ7GdVHoLoF8/nopLcd/QfPigpCy7i51oFHiRJg/CyHhj4vs2+KGw==}
@@ -3330,6 +3333,9 @@ packages:
 
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
+
+  wgpu-matrix@3.3.0:
+    resolution: {integrity: sha512-MRdywXdzTwX9pVbO5Z/oRX9l7464Wkfv28glG1c7t7s5v/0Dvts6yV8b4AOTOTl1UDGq9KUEAoSN6KW5P12ruQ==}
 
   whatwg-fetch@3.6.20:
     resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
@@ -4945,9 +4951,9 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@typegpu/noise@0.0.3(typegpu@0.4.5)':
+  '@typegpu/noise@0.0.3(typegpu@0.4.6)':
     dependencies:
-      typegpu: 0.4.5
+      typegpu: 0.4.6
 
   '@types/babel__core@7.20.5':
     dependencies:
@@ -7232,11 +7238,11 @@ snapshots:
 
   through@2.3.8: {}
 
-  tinyest-for-wgsl@0.1.0-alpha.2:
+  tinyest-for-wgsl@0.1.0-alpha.4:
     dependencies:
-      tinyest: 0.1.0-alpha.3
+      tinyest: 0.1.0-alpha.4
 
-  tinyest@0.1.0-alpha.3: {}
+  tinyest@0.1.0-alpha.4: {}
 
   tmp@0.0.33:
     dependencies:
@@ -7266,9 +7272,9 @@ snapshots:
 
   typed-binary@4.3.2: {}
 
-  typegpu@0.4.5:
+  typegpu@0.4.6:
     dependencies:
-      tinyest: 0.1.0-alpha.3
+      tinyest: 0.1.0-alpha.4
       typed-binary: 4.3.2
 
   typescript@5.8.2: {}
@@ -7310,12 +7316,12 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  unplugin-typegpu@0.1.0-alpha.3:
+  unplugin-typegpu@0.1.0-alpha.4:
     dependencies:
       '@babel/standalone': 7.26.9
       estree-walker: 3.0.3
       magic-string: 0.30.17
-      tinyest-for-wgsl: 0.1.0-alpha.2
+      tinyest-for-wgsl: 0.1.0-alpha.4
       unplugin: 2.2.0
 
   unplugin@2.2.0:
@@ -7356,6 +7362,8 @@ snapshots:
   webidl-conversions@5.0.0: {}
 
   webpack-virtual-modules@0.6.2: {}
+
+  wgpu-matrix@3.3.0: {}
 
   whatwg-fetch@3.6.20: {}
 

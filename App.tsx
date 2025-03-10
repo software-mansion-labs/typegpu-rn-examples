@@ -1,10 +1,12 @@
 import { StyleSheet, View } from 'react-native';
-import Boids from './examples/Boids';
+// import Boids from './examples/Boids';
+import GameOfLife from './examples/GameOfLife';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Boids />
+      {/* <Boids /> */}
+      <GameOfLife />
     </View>
   );
 }
