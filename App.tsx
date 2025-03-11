@@ -1,12 +1,14 @@
 import { StyleSheet, View } from 'react-native';
 // import Boids from './examples/Boids';
-import GameOfLife from './examples/GameOfLife';
+// import GameOfLife from './examples/GameOfLife';
+import FluidsDoubleBuffering from './examples/FluidsDoubleBuffering';
 
 export default function App() {
   return (
     <View style={styles.container}>
       {/* <Boids /> */}
-      <GameOfLife />
+      {/* <GameOfLife /> */}
+      <FluidsDoubleBuffering />
     </View>
   );
 }

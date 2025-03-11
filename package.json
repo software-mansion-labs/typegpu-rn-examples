@@ -15,7 +15,7 @@
     "react-native": "0.76.7",
     "react-native-wgpu": "^0.1.23",
     "typegpu": "0.4.6",
-    "unplugin-typegpu": "0.1.0-alpha.4",
+    "unplugin-typegpu": "0.1.0-alpha.5",
     "wgpu-matrix": "^3.3.0"
   },
   "devDependencies": {
