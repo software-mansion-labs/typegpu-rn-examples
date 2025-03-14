@@ -463,8 +463,8 @@ export default function () {
       enabled: boolean;
     }[] = [
       { x: 0.5, y: 0.5, width: 0.15, height: 0.5, enabled: true }, // box
-      { x: 0, y: 0.5, width: 0.01, height: 1, enabled: true }, // left wall
-      { x: 1, y: 0.5, width: 0.01, height: 1, enabled: true }, // right wall
+      { x: 0, y: 0.5, width: 0.05, height: 1, enabled: true }, // left wall
+      { x: 1, y: 0.5, width: 0.07, height: 1, enabled: true }, // right wall
       { x: 0.5, y: 0, width: 1, height: 0.1, enabled: true }, // floor
     ];
 
@@ -527,9 +527,9 @@ export default function () {
         const obstacleColor = d.vec4f(0.208, 0.204, 0.322, 1);
 
         const background = d.vec4f(0);
-        const first_color = d.vec4f(0.2, 0.6, 1, 0.8);
-        const second_color = d.vec4f(0.2, 0.3, 0.6, 0.8);
-        const third_color = d.vec4f(0.1, 0.2, 0.4, 0.8);
+        const first_color = d.vec4f(0.2, 0.6, 1, 1);
+        const second_color = d.vec4f(0.2, 0.3, 0.6, 1);
+        const third_color = d.vec4f(0.1, 0.2, 0.4, 1);
 
         const firstThreshold = d.f32(2);
         const secondThreshold = d.f32(10);
