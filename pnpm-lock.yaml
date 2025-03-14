@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@typegpu/noise':
         specifier: ^0.0.3
-        version: 0.0.3(typegpu@0.4.6)
+        version: 0.0.3(typegpu@https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968)
       expo:
         specifier: ~52.0.37
         version: 52.0.37(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(react-native@0.76.7(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
@@ -24,8 +24,8 @@ importers:
         specifier: ^0.1.23
         version: 0.1.23(react-native@0.76.7(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
       typegpu:
-        specifier: 0.4.6
-        version: 0.4.6
+        specifier: https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968
+        version: https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968
       unplugin-typegpu:
         specifier: 0.1.0-alpha.5
         version: 0.1.0-alpha.5
@@ -1064,6 +1064,7 @@ packages:
 
   '@typegpu/noise@0.0.3':
     resolution: {integrity: sha512-LHbtsMOBlWT+d2ikrFEDNpLigtLJxMXrXDnlxvYa1nbxzaiVs+oOoE70qzr/CYNdFvipirPrkcTQJR9C7G8C3g==}
+    version: 0.0.3
     peerDependencies:
       typegpu: ^0.3.2
 
@@ -3214,8 +3215,9 @@ packages:
   typed-binary@4.3.2:
     resolution: {integrity: sha512-HT3pIBM2njCZUmeczDaQUUErGiM6GXFCqMsHegE12HCoBtvHCkfR10JJni0TeGOTnLilTd6YFyj+YhflqQDrDQ==}
 
-  typegpu@0.4.6:
-    resolution: {integrity: sha512-goTO4JTYLfe7SIQ2lFrxiju1Ap/WBxWUihE7V3BOxqfi7Bick8tFZdwSjw+QAxw7h4NaAqzqlPIY0pdte4LawA==}
+  typegpu@https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968:
+    resolution: {tarball: https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968}
+    version: 0.4.6
     engines: {node: '>=12.20.0'}
 
   typescript@5.8.2:
@@ -4951,9 +4953,9 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@typegpu/noise@0.0.3(typegpu@0.4.6)':
+  '@typegpu/noise@0.0.3(typegpu@https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968)':
     dependencies:
-      typegpu: 0.4.6
+      typegpu: https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968
 
   '@types/babel__core@7.20.5':
     dependencies:
@@ -7272,7 +7274,7 @@ snapshots:
 
   typed-binary@4.3.2: {}
 
-  typegpu@0.4.6:
+  typegpu@https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968:
     dependencies:
       tinyest: 0.1.0-alpha.4
       typed-binary: 4.3.2

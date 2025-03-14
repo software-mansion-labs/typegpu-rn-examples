@@ -8,7 +8,7 @@ import GameOfLife from './examples/GameOfLife';
 const examples = ['🐥', '🛁', '🚰', '🎮'];
 
 export default function App() {
-  const [currentExample, setCurrentExample] = useState('🐥');
+  const [currentExample, setCurrentExample] = useState('🚰');
 
   return (
     <SafeAreaView

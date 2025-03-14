@@ -23,6 +23,20 @@ export default function () {
       brushType: 'water',
     };
 
+    const BrushTypes = ['wall', 'source', 'drain', 'water'];
+    function encodeBrushType(brushType: (typeof BrushTypes)[number]) {
+      switch (brushType) {
+        case 'wall':
+          return 1 << 24;
+        case 'source':
+          return 2 << 24;
+        case 'drain':
+          return 3 << 24;
+        default:
+          return 100;
+      }
+    }
+
     const sizeBuffer = root
       .createBuffer(d.vec2u)
       .$name('size')
@@ -349,6 +363,90 @@ export default function () {
 
     let drawCanvasData: { idx: number; value: number }[] = [];
 
+    let render: () => void = () => {};
+    let applyDrawCanvas: () => void;
+    let renderChanges: () => void;
+
+    function resetGameData() {
+      drawCanvasData = [];
+
+      const compute = tgpu['~unstable']
+        .computeFn({
+          in: { gid: d.builtin.globalInvocationId },
+          workgroupSize: [options.workgroupSize, options.workgroupSize],
+        })
+        .does((input) => {
+          decideWaterLevel(input.gid.x, input.gid.y);
+        });
+
+      const computePipeline = root['~unstable']
+        .withCompute(compute)
+        .createPipeline();
+      const renderPipeline = root['~unstable']
+        .withVertex(vertex, {
+          squareData: vertexLayout.attrib,
+          currentStateData: vertexInstanceLayout.attrib,
+        })
+        .withFragment(fragment, {
+          format: presentationFormat,
+        })
+        .withPrimitive({
+          topology: 'triangle-strip',
+        })
+        .createPipeline()
+        .with(vertexLayout, squareBuffer)
+        .with(vertexInstanceLayout, currentStateBuffer);
+
+      currentStateBuffer.write(Array.from({ length: 1024 ** 2 }, () => 0));
+      nextStateBuffer.write(Array.from({ length: 1024 ** 2 }, () => 0));
+      sizeBuffer.write(d.vec2u(options.size, options.size));
+
+      render = () => {
+        // compute
+        computePipeline.dispatchWorkgroups(
+          options.size / options.workgroupSize,
+          options.size / options.workgroupSize,
+        );
+
+        // render
+        renderPipeline
+          .withColorAttachment({
+            view: context.getCurrentTexture().createView(),
+            clearValue: [0, 0, 0, 0],
+            loadOp: 'clear' as const,
+            storeOp: 'store' as const,
+          })
+          .draw(4, options.size ** 2);
+
+        root['~unstable'].flush();
+
+        currentStateBuffer.copyFrom(nextStateBuffer);
+      };
+
+      applyDrawCanvas = () => {
+        nextStateBuffer.writePartial(drawCanvasData);
+
+        drawCanvasData = [];
+      };
+
+      renderChanges = () => {
+        renderPipeline
+          .withColorAttachment({
+            view: context.getCurrentTexture().createView(),
+            clearValue: [0, 0, 0, 0],
+            loadOp: 'clear' as const,
+            storeOp: 'store' as const,
+          })
+          .with(vertexLayout, squareBuffer)
+          .with(vertexInstanceLayout, currentStateBuffer)
+          .draw(4, options.size ** 2);
+        root['~unstable'].flush();
+      };
+
+      createSampleScene();
+      applyDrawCanvas();
+    }
+
     const createSampleScene = () => {
       const middlePoint = Math.floor(options.size / 2);
       const radius = Math.floor(options.size / 8);
@@ -392,71 +490,86 @@ export default function () {
           value: 1 << 24,
         });
       }
+
+      console.log(drawCanvasData);
     };
 
-    drawCanvasData = [];
+    const controls = {
+      size: {
+        initial: '32',
+        options: [16, 32, 64, 128, 256, 512, 1024].map((x) => x.toString()),
+        onSelectChange: (value: string) => {
+          options.size = Number.parseInt(value);
+          resetGameData();
+        },
+      },
 
-    const compute = tgpu['~unstable']
-      .computeFn({
-        in: { gid: d.builtin.globalInvocationId },
-        workgroupSize: [options.workgroupSize, options.workgroupSize],
-      })
-      .does((input) => {
-        decideWaterLevel(input.gid.x, input.gid.y);
-      });
+      'timestep (ms)': {
+        initial: 25,
+        min: 15,
+        max: 100,
+        step: 1,
+        onSliderChange: (value: number) => {
+          options.timestep = value;
+        },
+      },
 
-    const computePipeline = root['~unstable']
-      .withCompute(compute)
-      .createPipeline();
-    const renderPipeline = root['~unstable']
-      .withVertex(vertex, {
-        squareData: vertexLayout.attrib,
-        currentStateData: vertexInstanceLayout.attrib,
-      })
-      .withFragment(fragment, {
-        format: presentationFormat,
-      })
-      .withPrimitive({
-        topology: 'triangle-strip',
-      })
-      .createPipeline()
-      .with(vertexLayout, squareBuffer)
-      .with(vertexInstanceLayout, currentStateBuffer);
+      'steps per timestep': {
+        initial: 1,
+        min: 1,
+        max: 50,
+        step: 1,
+        onSliderChange: (value: number) => {
+          options.stepsPerTimestep = value;
+        },
+      },
 
-    currentStateBuffer.write(Array.from({ length: 1024 ** 2 }, () => 0));
-    nextStateBuffer.write(Array.from({ length: 1024 ** 2 }, () => 0));
-    sizeBuffer.write(d.vec2u(options.size, options.size));
+      'workgroup size': {
+        initial: '1',
+        options: [1, 2, 4, 8, 16].map((x) => x.toString()),
+        onSelectChange: (value: string) => {
+          options.workgroupSize = Number.parseInt(value);
+          resetGameData();
+        },
+      },
 
-    const render = () => {
-      // compute
-      computePipeline.dispatchWorkgroups(
-        options.size / options.workgroupSize,
-        options.size / options.workgroupSize,
-      );
+      viscosity: {
+        initial: 0,
+        min: 0,
+        max: 1,
+        step: 0.01,
+        onSliderChange: (value: number) => {
+          options.viscosity = 1000 - value * 990;
+          viscosityBuffer.write(options.viscosity);
+        },
+      },
 
-      // render
-      renderPipeline
-        .withColorAttachment({
-          view: context.getCurrentTexture().createView(),
-          clearValue: [0, 0, 0, 0],
-          loadOp: 'clear' as const,
-          storeOp: 'store' as const,
-        })
-        .draw(4, options.size ** 2);
+      'brush size': {
+        initial: 1,
+        min: 1,
+        max: 10,
+        step: 1,
+        onSliderChange: (value: number) => {
+          options.brushSize = value - 1;
+        },
+      },
 
-      root['~unstable'].flush();
-
-      currentStateBuffer.copyFrom(nextStateBuffer);
+      'brush type': {
+        initial: 'water',
+        options: BrushTypes,
+        onSelectChange: (value: string) => {
+          options.brushType = value;
+        },
+      },
     };
 
-    const applyDrawCanvas = () => {
-      nextStateBuffer.writePartial(drawCanvasData);
-
-      drawCanvasData = [];
-    };
-
-    createSampleScene();
-    applyDrawCanvas();
+    for (const control of Object.values(controls)) {
+      for (const value of Object.values(control)) {
+        if (typeof value === 'function') {
+          value(control.initial);
+        }
+      }
+    }
 
     return render;
   });
