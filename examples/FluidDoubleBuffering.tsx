@@ -384,8 +384,8 @@ export default function () {
         }
       });
 
-    const sourceIntensity = 0.1;
-    const sourceRadius = 0.01;
+    const sourceIntensity = 0.2;
+    const sourceRadius = 0.05;
 
     const sourceParamsBuffer = root
       .createBuffer(
@@ -462,9 +462,9 @@ export default function () {
       height: number;
       enabled: boolean;
     }[] = [
-      { x: 0.5, y: 0.2, width: 0.2, height: 0.2, enabled: true }, // box
-      { x: 0, y: 0.5, width: 0.1, height: 1, enabled: true }, // left wall
-      { x: 1, y: 0.5, width: 0.1, height: 1, enabled: true }, // right wall
+      { x: 0.5, y: 0.2, width: 0.15, height: 0.15, enabled: true }, // box
+      { x: 0, y: 0.5, width: 0.01, height: 1, enabled: true }, // left wall
+      { x: 1, y: 0.5, width: 0.01, height: 1, enabled: true }, // right wall
       { x: 0.5, y: 0, width: 1, height: 0.1, enabled: true }, // floor
     ];
 
@@ -485,7 +485,7 @@ export default function () {
       return Math.max(boxX, leftWallX + leftWallWidth / 2 + 0.15);
     };
 
-    const boxY = 0.2;
+    const boxY = 0.1;
     const leftWallX = 0;
 
     const vertexMain = tgpu['~unstable']
@@ -524,9 +524,9 @@ export default function () {
         const cell = inputGridSlot.value[index];
         const density = std.max(0, cell.z);
 
-        const obstacleColor = d.vec4f(0.1, 0.1, 0.1, 1);
+        const obstacleColor = d.vec4f(0.3, 0.3, 0.3, 0.5);
 
-        const background = d.vec4f(0.9, 0.9, 0.9, 1);
+        const background = d.vec4f(0);
         const first_color = d.vec4f(0.2, 0.6, 1, 1);
         const second_color = d.vec4f(0.2, 0.3, 0.6, 1);
         const third_color = d.vec4f(0.1, 0.2, 0.4, 1);
@@ -651,7 +651,13 @@ export default function () {
     primary.init();
 
     const frame = () => {
-      timeBuffer.write(Date.now() % 1000);
+      const time = Date.now() % 1000;
+      timeBuffer.write(time);
+      obstacles[OBSTACLE_BOX].x =
+        0.5 + 0.1 * Math.sin((2 * Math.PI * Date.now()) / 2000);
+      obstacles[OBSTACLE_BOX].y =
+        0.3 + 0.05 * Math.cos((2 * Math.PI * Date.now()) / 2000);
+      primary.applyMovedObstacles(obstaclesToConcrete());
 
       sourceParamsBuffer.write({
         center: d.vec2f(0.5, 0.9),
