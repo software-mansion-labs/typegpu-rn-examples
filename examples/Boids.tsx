@@ -4,8 +4,8 @@ import * as d from 'typegpu/data';
 
 import { useWebGPU } from '../useWebGPU';
 
-const triangleAmount = 1000;
-const triangleSize = 0.03;
+const triangleAmount = 500;
+const triangleSize = 0.08;
 
 const rotate = tgpu['~unstable'].fn([d.vec2f, d.f32], d.vec2f).does(/* wgsl */ `
   (v: vec2f, angle: f32) -> vec2f {
@@ -92,6 +92,7 @@ type Params = d.Infer<typeof Params>;
 const colorPresets = {
   plumTree: d.vec3f(1.0, 2.0, 1.0),
   jeans: d.vec3f(2.0, 1.5, 1.0),
+  typegpu: d.vec3f(0, 0.345, 0.867),
   greyscale: d.vec3f(0, 0, 0),
   hotcold: d.vec3f(0, 3.14, 3.14),
 };
@@ -181,7 +182,7 @@ export default function () {
     randomizePositions();
 
     const colorPaletteBuffer = root
-      .createBuffer(d.vec3f, colorPresets.jeans)
+      .createBuffer(d.vec3f, colorPresets.typegpu)
       .$usage('uniform');
 
     const renderPipeline = root['~unstable']

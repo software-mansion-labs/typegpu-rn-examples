@@ -462,7 +462,7 @@ export default function () {
       height: number;
       enabled: boolean;
     }[] = [
-      { x: 0.5, y: 0.5, width: 0.15, height: 0.15, enabled: true }, // box
+      { x: 0.5, y: 0.5, width: 0.15, height: 0.5, enabled: true }, // box
       { x: 0, y: 0.5, width: 0.01, height: 1, enabled: true }, // left wall
       { x: 1, y: 0.5, width: 0.01, height: 1, enabled: true }, // right wall
       { x: 0.5, y: 0, width: 1, height: 0.1, enabled: true }, // floor
@@ -524,7 +524,7 @@ export default function () {
         const cell = inputGridSlot.value[index];
         const density = std.max(0, cell.z);
 
-        const obstacleColor = d.vec4f(0.2704, 0.3388, 0.3909, 1);
+        const obstacleColor = d.vec4f(0.208, 0.204, 0.322, 1);
 
         const background = d.vec4f(0);
         const first_color = d.vec4f(0.2, 0.6, 1, 0.8);
@@ -650,13 +650,17 @@ export default function () {
     prevObstaclesBuffer.write(obstaclesToConcrete());
     primary.init();
 
+    let frameNum = 1;
+
     const frame = () => {
+      frameNum++;
+
       const time = Date.now() % 1000;
       timeBuffer.write(time);
       obstacles[OBSTACLE_BOX].x =
-        0.5 + 0.1 * Math.sin((2 * Math.PI * Date.now()) / 4000);
-      obstacles[OBSTACLE_BOX].y =
-        0.5 + 0.05 * Math.cos((2 * Math.PI * Date.now()) / 4000);
+        0.5 + 0.1 * Math.sin((2 * Math.PI * frameNum) / 100);
+      // obstacles[OBSTACLE_BOX].y =
+      //   0.5 + 0.05 * Math.cos((2 * Math.PI * frameNum) / 100);
       primary.applyMovedObstacles(obstaclesToConcrete());
 
       sourceParamsBuffer.write({

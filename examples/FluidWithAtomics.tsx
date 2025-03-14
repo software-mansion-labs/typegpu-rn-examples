@@ -323,7 +323,7 @@ export default function () {
       .fragmentFn({ in: { cell: d.f32 }, out: d.location(0, d.vec4f) })
       .does((input) => {
         if (input.cell === -1) {
-          return d.vec4f(0.2704, 0.3388, 0.3909, 1);
+          return d.vec4f(0.208, 0.204, 0.322, 1);
         }
         if (input.cell === -2) {
           return d.vec4f(0, 1, 0, 1);
@@ -420,9 +420,7 @@ export default function () {
       .with(vertexLayout, squareBuffer)
       .with(vertexInstanceLayout, currentStateBuffer);
 
-    currentStateBuffer.write(Array.from({ length: 1024 ** 2 }, () => 0));
-    nextStateBuffer.write(Array.from({ length: 1024 ** 2 }, () => 0));
-    sizeBuffer.write(d.vec2u(options.size, options.size));
+    console.log('definiton done');
 
     const render = () => {
       // compute
@@ -467,10 +465,11 @@ export default function () {
       drawCanvasData.fill(0);
     };
 
+    sizeBuffer.write(d.vec2u(options.size, options.size));
+    viscosityBuffer.write(options.viscosity);
+
     createSampleScene();
     applyDrawCanvas();
-
-    viscosityBuffer.write(options.viscosity);
     return render;
   });
 

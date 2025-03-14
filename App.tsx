@@ -3,12 +3,14 @@ import { Pressable, SafeAreaView, Text, View } from 'react-native';
 import Boids from './examples/Boids';
 import FluidDoubleBuffering from './examples/FluidDoubleBuffering';
 import FluidWithAtomics from './examples/FluidWithAtomics';
+import FunctionVisualizer from './examples/FunctionVisualizer';
 import GameOfLife from './examples/GameOfLife';
 
-const examples = ['🐥', '🛁', '🚰', '🎮'];
+const examples = ['🐥', '🛁', '🚰', '🎮', '📈'];
 
 export default function App() {
-  const [currentExample, setCurrentExample] = useState('🚰');
+  const [currentExample, setCurrentExample] =
+    useState<(typeof examples)[number]>('📈');
 
   return (
     <SafeAreaView
@@ -28,6 +30,8 @@ export default function App() {
           <FluidWithAtomics />
         ) : currentExample === '🎮' ? (
           <GameOfLife />
+        ) : currentExample === '📈' ? (
+          <FunctionVisualizer />
         ) : null}
       </View>
       <View
