@@ -17,7 +17,7 @@ import {
   renderInstanceLayout,
 } from './schemas';
 
-import { Dimensions } from 'react-native';
+import { Dimensions, Text, View } from 'react-native';
 import { useWebGPU } from '../../useWebGPU';
 
 export default function () {
@@ -260,16 +260,65 @@ export default function () {
   );
 
   return (
-    <Canvas
-      ref={ref}
-      style={{
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        zIndex: 20,
-        width: Dimensions.get('window').width,
-        height: Dimensions.get('window').height,
-      }}
-    />
+    <View style={{ position: 'static' }}>
+      <View
+        style={{
+          zIndex: 30,
+          position: 'static',
+          padding: 30,
+          gap: 20,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 40,
+            color: 'white',
+            fontWeight: 900,
+            zIndex: 80,
+          }}
+        >
+          Aquarium
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 20,
+            color: 'white',
+            fontWeight: 500,
+            zIndex: 80,
+          }}
+        >
+          A public aquarium (pl. aquaria) or public water zoo is the aquatic
+          counterpart of a zoo, which houses living aquatic animal and plant
+          specimens for public viewing. Most public aquariums feature tanks
+          larger than those kept by home aquarists, as well as smaller tanks.
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 20,
+            color: 'white',
+            fontWeight: 500,
+            zIndex: 80,
+          }}
+        >
+          Since the first public aquariums were built in the mid-19th century,
+          they have become popular and their numbers have increased. Most modern
+          accredited aquariums stress conservation issues and educating the
+          public.
+        </Text>
+      </View>
+      <Canvas
+        ref={ref}
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          zIndex: 20,
+          width: Dimensions.get('window').width,
+          height: Dimensions.get('window').height,
+        }}
+      />
+    </View>
   );
 }
