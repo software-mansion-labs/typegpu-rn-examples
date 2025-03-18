@@ -401,6 +401,7 @@ fn orthonormalForVertex(index: u32) -> vec2f {
     function queuePropertiesBufferUpdate() {
       properties.inverseTransformation = mat4.inverse(
         properties.transformation,
+        d.mat4x4f(),
       );
       propertiesBuffer.write(properties);
     }

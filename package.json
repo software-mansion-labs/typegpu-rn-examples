@@ -14,9 +14,11 @@
     "react": "18.3.1",
     "react-native": "0.76.7",
     "react-native-wgpu": "^0.1.23",
-    "typegpu": "https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968",
+    "typegpu": "^0.5.1",
     "unplugin-typegpu": "0.1.0-alpha.5",
-    "wgpu-matrix": "^3.3.0"
+    "wgpu-matrix": "^3.3.0",
+    "@loaders.gl/core": "^4.3.3",
+    "@loaders.gl/obj": "^4.3.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

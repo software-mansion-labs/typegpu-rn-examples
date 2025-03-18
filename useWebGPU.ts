@@ -11,8 +11,12 @@ interface SceneProps {
 }
 
 type RenderScene = (timestamp: number) => void;
-// biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-type Scene = (props: SceneProps) => RenderScene | void | Promise<RenderScene>;
+type Scene = (props: SceneProps) =>
+  | RenderScene
+  | void
+  | Promise<RenderScene>
+  // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
+  | Promise<RenderScene | void | Promise<RenderScene>>;
 
 export const useWebGPU = (scene: Scene) => {
   const { device } = useDevice();
@@ -42,7 +46,10 @@ export const useWebGPU = (scene: Scene) => {
         canvas: context.canvas as unknown as NativeCanvas,
       };
 
-      const r = scene(sceneProps);
+      const r: RenderScene | Promise<RenderScene> = (
+        scene instanceof Promise ? await scene(sceneProps) : scene(sceneProps)
+      ) as RenderScene | Promise<RenderScene>;
+
       let renderScene: RenderScene;
       if (r instanceof Promise) {
         renderScene = await r;

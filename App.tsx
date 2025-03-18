@@ -1,27 +1,30 @@
 import { useState } from 'react';
 import { Pressable, SafeAreaView, Text, View } from 'react-native';
 import Boids from './examples/Boids';
+import Fish from './examples/Fish/Fish';
 import FluidDoubleBuffering from './examples/FluidDoubleBuffering';
 import FluidWithAtomics from './examples/FluidWithAtomics';
 import FunctionVisualizer from './examples/FunctionVisualizer';
 import GameOfLife from './examples/GameOfLife';
 
-const examples = ['🐥', '🛁', '🚰', '🎮', '📈'];
+const examples = ['🐠', '🛁', '🚰', '🎮', '📈', '🐥'];
 
 export default function App() {
   const [currentExample, setCurrentExample] =
-    useState<(typeof examples)[number]>('📈');
+    useState<(typeof examples)[number]>('🐠');
 
   return (
     <SafeAreaView
       style={{
+        position: 'static',
         flex: 1,
         backgroundColor: 'rgb(239 239 249)',
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 30,
       }}
     >
-      <View style={{ flex: 1, justifyContent: 'center' }}>
+      <View style={{ flex: 1, justifyContent: 'center', position: 'static' }}>
         {currentExample === '🐥' ? (
           <Boids />
         ) : currentExample === '🛁' ? (
@@ -32,6 +35,8 @@ export default function App() {
           <GameOfLife />
         ) : currentExample === '📈' ? (
           <FunctionVisualizer />
+        ) : currentExample === '🐠' ? (
+          <Fish />
         ) : null}
       </View>
       <View
@@ -40,6 +45,7 @@ export default function App() {
           gap: 20,
           paddingVertical: 40,
           alignItems: 'center',
+          zIndex: 40,
         }}
       >
         {examples.map((example) => (

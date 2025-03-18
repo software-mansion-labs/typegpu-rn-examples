@@ -8,9 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@loaders.gl/core':
+        specifier: ^4.3.3
+        version: 4.3.3
+      '@loaders.gl/obj':
+        specifier: ^4.3.3
+        version: 4.3.3(@loaders.gl/core@4.3.3)
       '@typegpu/noise':
         specifier: ^0.0.3
-        version: 0.0.3(typegpu@https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968)
+        version: 0.0.3(typegpu@0.5.1)
       expo:
         specifier: ~52.0.37
         version: 52.0.37(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(react-native@0.76.7(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
@@ -24,8 +30,8 @@ importers:
         specifier: ^0.1.23
         version: 0.1.23(react-native@0.76.7(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
       typegpu:
-        specifier: https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968
-        version: https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968
+        specifier: ^0.5.1
+        version: 0.5.1
       unplugin-typegpu:
         specifier: 0.1.0-alpha.5
         version: 0.1.0-alpha.5
@@ -965,6 +971,29 @@ packages:
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
+  '@loaders.gl/core@4.3.3':
+    resolution: {integrity: sha512-RaQ3uNg4ZaVqDRgvJ2CjaOjeeHdKvbKuzFFgbGnflVB9is5bu+h3EKc3Jke7NGVvLBsZ6oIXzkwHijVsMfxv8g==}
+
+  '@loaders.gl/loader-utils@4.3.3':
+    resolution: {integrity: sha512-8erUIwWLiIsZX36fFa/seZsfTsWlLk72Sibh/YZJrPAefuVucV4mGGzMBZ96LE2BUfJhadn250eio/59TUFbNw==}
+    peerDependencies:
+      '@loaders.gl/core': ^4.3.0
+
+  '@loaders.gl/obj@4.3.3':
+    resolution: {integrity: sha512-MR8gh/uCujesF62n1R8AX0LeJSuZdXQ+y9sa6owM9WueELZvoCKvnBMI62yk8AgVpT6DsaNZ3u6l4K/RayDFLw==}
+    peerDependencies:
+      '@loaders.gl/core': ^4.3.0
+
+  '@loaders.gl/schema@4.3.3':
+    resolution: {integrity: sha512-zacc9/8je+VbuC6N/QRfiTjRd+BuxsYlddLX1u5/X/cg9s36WZZBlU1oNKUgTYe8eO6+qLyYx77yi+9JbbEehw==}
+    peerDependencies:
+      '@loaders.gl/core': ^4.3.0
+
+  '@loaders.gl/worker-utils@4.3.3':
+    resolution: {integrity: sha512-eg45Ux6xqsAfqPUqJkhmbFZh9qfmYuPfA+34VcLtfeXIwAngeP6o4SrTmm9LWLGUKiSh47anCEV1p7borDgvGQ==}
+    peerDependencies:
+      '@loaders.gl/core': ^4.3.0
+
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -984,6 +1013,15 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
+
+  '@probe.gl/env@4.1.0':
+    resolution: {integrity: sha512-5ac2Jm2K72VCs4eSMsM7ykVRrV47w32xOGMvcgqn8vQdEMF9PRXyBGYEV9YbqRKWNKpNKmQJVi4AHM/fkCxs9w==}
+
+  '@probe.gl/log@4.1.0':
+    resolution: {integrity: sha512-r4gRReNY6f+OZEMgfWEXrAE2qJEt8rX0HsDJQXUBMoc+5H47bdB7f/5HBHAmapK8UydwPKL9wCDoS22rJ0yq7Q==}
+
+  '@probe.gl/stats@4.1.0':
+    resolution: {integrity: sha512-EI413MkWKBDVNIfLdqbeNSJTs7ToBz/KVGkwi3D+dQrSIkRI2IYbWGAU3xX+D6+CI4ls8ehxMhNpUVMaZggDvQ==}
 
   '@react-native/assets-registry@0.76.7':
     resolution: {integrity: sha512-o79whsqL5fbPTUQO9w1FptRd4cw1TaeOrXtQSLQeDrMVAenw/wmsjyPK10VKtvqxa1KNMtWEyfgxcM8CVZVFmg==}
@@ -1064,7 +1102,6 @@ packages:
 
   '@typegpu/noise@0.0.3':
     resolution: {integrity: sha512-LHbtsMOBlWT+d2ikrFEDNpLigtLJxMXrXDnlxvYa1nbxzaiVs+oOoE70qzr/CYNdFvipirPrkcTQJR9C7G8C3g==}
-    version: 0.0.3
     peerDependencies:
       typegpu: ^0.3.2
 
@@ -1082,6 +1119,9 @@ packages:
 
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
+
+  '@types/geojson@7946.0.16':
+    resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
 
   '@types/graceful-fs@4.1.9':
     resolution: {integrity: sha512-olP3sd1qOEe5dXTSaFvQG+02VdRXcdytWLAZsAq1PecU8uqQAhkrnbli7DagjtXKW/Bl7YJbUsa8MPcuc8LHEQ==}
@@ -3172,6 +3212,10 @@ packages:
     resolution: {integrity: sha512-s+cndC8E+icfzHMq/exGIMCHcNlu7ULGSLQUCIWb4ZrRilEDKdkYnUhgChqQSSVXCT36VY9k6H9CGbcyi2Aa6g==}
     engines: {node: '>=12.20.0'}
 
+  tinyest@0.1.0-alpha.5:
+    resolution: {integrity: sha512-sCGNOZ+3A103AjQ8hA9yV3zjBDTZWppRjHJGEeX95OEcV0A3m52FBlozSVkUc1b5iaQr0ZNUgXoVjlr2iXbpmw==}
+    engines: {node: '>=12.20.0'}
+
   tmp@0.0.33:
     resolution: {integrity: sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==}
     engines: {node: '>=0.6.0'}
@@ -3215,9 +3259,8 @@ packages:
   typed-binary@4.3.2:
     resolution: {integrity: sha512-HT3pIBM2njCZUmeczDaQUUErGiM6GXFCqMsHegE12HCoBtvHCkfR10JJni0TeGOTnLilTd6YFyj+YhflqQDrDQ==}
 
-  typegpu@https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968:
-    resolution: {tarball: https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968}
-    version: 0.4.6
+  typegpu@0.5.1:
+    resolution: {integrity: sha512-ax7ZTW1cQEQbwMpOrpgb6Mok4KxRHhuf6v9ut2n4LT12DbKU4pnE7R4Rjf7ETg3rqzRA93mZMfmdIgvSyRMhcg==}
     engines: {node: '>=12.20.0'}
 
   typescript@5.8.2:
@@ -4778,6 +4821,36 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
+  '@loaders.gl/core@4.3.3':
+    dependencies:
+      '@loaders.gl/loader-utils': 4.3.3(@loaders.gl/core@4.3.3)
+      '@loaders.gl/schema': 4.3.3(@loaders.gl/core@4.3.3)
+      '@loaders.gl/worker-utils': 4.3.3(@loaders.gl/core@4.3.3)
+      '@probe.gl/log': 4.1.0
+
+  '@loaders.gl/loader-utils@4.3.3(@loaders.gl/core@4.3.3)':
+    dependencies:
+      '@loaders.gl/core': 4.3.3
+      '@loaders.gl/schema': 4.3.3(@loaders.gl/core@4.3.3)
+      '@loaders.gl/worker-utils': 4.3.3(@loaders.gl/core@4.3.3)
+      '@probe.gl/log': 4.1.0
+      '@probe.gl/stats': 4.1.0
+
+  '@loaders.gl/obj@4.3.3(@loaders.gl/core@4.3.3)':
+    dependencies:
+      '@loaders.gl/core': 4.3.3
+      '@loaders.gl/loader-utils': 4.3.3(@loaders.gl/core@4.3.3)
+      '@loaders.gl/schema': 4.3.3(@loaders.gl/core@4.3.3)
+
+  '@loaders.gl/schema@4.3.3(@loaders.gl/core@4.3.3)':
+    dependencies:
+      '@loaders.gl/core': 4.3.3
+      '@types/geojson': 7946.0.16
+
+  '@loaders.gl/worker-utils@4.3.3(@loaders.gl/core@4.3.3)':
+    dependencies:
+      '@loaders.gl/core': 4.3.3
+
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
       '@nodelib/fs.stat': 2.0.5
@@ -4796,6 +4869,14 @@ snapshots:
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
+
+  '@probe.gl/env@4.1.0': {}
+
+  '@probe.gl/log@4.1.0':
+    dependencies:
+      '@probe.gl/env': 4.1.0
+
+  '@probe.gl/stats@4.1.0': {}
 
   '@react-native/assets-registry@0.76.7': {}
 
@@ -4953,9 +5034,9 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@typegpu/noise@0.0.3(typegpu@https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968)':
+  '@typegpu/noise@0.0.3(typegpu@0.5.1)':
     dependencies:
-      typegpu: https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968
+      typegpu: 0.5.1
 
   '@types/babel__core@7.20.5':
     dependencies:
@@ -4979,6 +5060,8 @@ snapshots:
       '@babel/types': 7.26.9
 
   '@types/estree@1.0.6': {}
+
+  '@types/geojson@7946.0.16': {}
 
   '@types/graceful-fs@4.1.9':
     dependencies:
@@ -7246,6 +7329,8 @@ snapshots:
 
   tinyest@0.1.0-alpha.4: {}
 
+  tinyest@0.1.0-alpha.5: {}
+
   tmp@0.0.33:
     dependencies:
       os-tmpdir: 1.0.2
@@ -7274,9 +7359,9 @@ snapshots:
 
   typed-binary@4.3.2: {}
 
-  typegpu@https://pkg.pr.new/software-mansion/TypeGPU/typegpu@968:
+  typegpu@0.5.1:
     dependencies:
-      tinyest: 0.1.0-alpha.4
+      tinyest: 0.1.0-alpha.5
       typed-binary: 4.3.2
 
   typescript@5.8.2: {}
