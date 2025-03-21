@@ -524,12 +524,32 @@ export default function () {
         const cell = inputGridSlot.value[index];
         const density = std.max(0, cell.z);
 
-        const obstacleColor = d.vec4f(0.208, 0.204, 0.322, 1);
+        const obstacleColor = d.vec4f(
+          41 * 0.00390625,
+          44 * 0.00390625,
+          119 * 0.00390625,
+          1,
+        );
 
         const background = d.vec4f(0);
-        const first_color = d.vec4f(0.2, 0.6, 1, 1);
-        const second_color = d.vec4f(0.2, 0.3, 0.6, 1);
-        const third_color = d.vec4f(0.1, 0.2, 0.4, 1);
+        const third_color = d.vec4f(
+          82.0 * 0.00390625,
+          89.0 * 0.00390625,
+          238.0 * 0.00390625,
+          1,
+        );
+        const second_color = d.vec4f(
+          133.0 * 0.00390625,
+          138.0 * 0.00390625,
+          243.0 * 0.00390625,
+          1,
+        );
+        const first_color = d.vec4f(
+          185.0 * 0.00390625,
+          188.0 * 0.00390625,
+          248.0 * 0.00390625,
+          1,
+        );
 
         const firstThreshold = d.f32(2);
         const secondThreshold = d.f32(10);
@@ -658,9 +678,7 @@ export default function () {
       const time = Date.now() % 1000;
       timeBuffer.write(time);
       obstacles[OBSTACLE_BOX].x =
-        0.5 + 0.1 * Math.sin((2 * Math.PI * frameNum) / 100);
-      // obstacles[OBSTACLE_BOX].y =
-      //   0.5 + 0.05 * Math.cos((2 * Math.PI * frameNum) / 100);
+        0.5 + 0.1 * Math.cos((2 * Math.PI * frameNum) / 200);
       primary.applyMovedObstacles(obstaclesToConcrete());
 
       sourceParamsBuffer.write({

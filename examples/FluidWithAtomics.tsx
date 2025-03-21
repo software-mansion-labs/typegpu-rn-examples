@@ -323,7 +323,7 @@ export default function () {
       .fragmentFn({ in: { cell: d.f32 }, out: d.location(0, d.vec4f) })
       .does((input) => {
         if (input.cell === -1) {
-          return d.vec4f(0.208, 0.204, 0.322, 1);
+          return d.vec4f(41 * 0.00390625, 44 * 0.00390625, 119 * 0.00390625, 1);
         }
         if (input.cell === -2) {
           return d.vec4f(0, 1, 0, 1);
@@ -339,7 +339,7 @@ export default function () {
         }
 
         const res = 1 / (1 + std.exp(-(normalized - 0.2) * 10));
-        return d.vec4f(0, 0, std.max(0.5, res), res);
+        return std.mul(res, d.vec4f(0.34309623431, 0.37238493723, 1, 1));
       });
 
     const vertexInstanceLayout = tgpu.vertexLayout(
@@ -354,8 +354,30 @@ export default function () {
     let drawCanvasData = new Uint32Array(options.size * options.size);
 
     const createSampleScene = () => {
-      const middlePoint = Math.floor(options.size / 2);
-      const radius = Math.floor(options.size / 8);
+      let middlePoint = Math.floor(options.size / 3);
+      let radius = Math.floor(options.size / 16);
+
+      for (let i = -radius; i <= radius; i++) {
+        for (let j = -radius; j <= radius; j++) {
+          if (i * i + j * j <= radius * radius) {
+            drawCanvasData[(middlePoint + j) * options.size + middlePoint + i] =
+              1 << 24;
+          }
+        }
+      }
+
+      for (let i = -radius; i <= radius; i++) {
+        for (let j = -radius; j <= radius; j++) {
+          if (i * i + j * j <= radius * radius) {
+            drawCanvasData[
+              (middlePoint + j) * options.size + options.size - middlePoint + i
+            ] = 1 << 24;
+          }
+        }
+      }
+
+      radius = Math.floor(options.size / 8);
+      middlePoint = Math.floor(options.size / 2);
       for (let i = -radius; i <= radius; i++) {
         for (let j = -radius; j <= radius; j++) {
           if (i * i + j * j <= radius * radius) {
@@ -382,11 +404,11 @@ export default function () {
         drawCanvasData[i] = 1 << 24;
       }
 
-      for (let i = 0; i < Math.floor(options.size / 8); i++) {
+      for (let i = 0; i < Math.floor(options.size / 2); i++) {
         drawCanvasData[i * options.size] = 1 << 24;
       }
 
-      for (let i = 0; i < Math.floor(options.size / 8); i++) {
+      for (let i = 0; i < Math.floor(options.size / 2); i++) {
         drawCanvasData[i * options.size - 1 + options.size] = 1 << 24;
       }
     };
@@ -419,8 +441,6 @@ export default function () {
       .createPipeline()
       .with(vertexLayout, squareBuffer)
       .with(vertexInstanceLayout, currentStateBuffer);
-
-    console.log('definiton done');
 
     const render = () => {
       // compute

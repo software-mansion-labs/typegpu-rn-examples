@@ -7,7 +7,7 @@ import FluidWithAtomics from './examples/FluidWithAtomics';
 import FunctionVisualizer from './examples/FunctionVisualizer';
 import GameOfLife from './examples/GameOfLife';
 
-const examples = ['🐠', '🛁', '🚰', '🎮', '📈', '🐥'];
+const examples = ['🐠', '🚰', '🎮', '📈', '🛁', '🐥'];
 
 export default function App() {
   const [currentExample, setCurrentExample] =
