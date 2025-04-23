@@ -274,6 +274,7 @@ fn frag(@location(0) cell: f32, @builtin(position) pos: vec4f, @location(1) uv: 
         width: '100%',
         aspectRatio: 1,
       }}
+      transparent
     />
   );
 }

@@ -500,6 +500,7 @@ export default function () {
         width: '100%',
         aspectRatio: 1,
       }}
+      transparent
     />
   );
 }
