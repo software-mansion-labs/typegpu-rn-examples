@@ -416,6 +416,7 @@ fn orthonormalForVertex(index: u32) -> vec2f {
         width: '100%',
         aspectRatio: 1,
       }}
+      transparent
     />
   );
 }
