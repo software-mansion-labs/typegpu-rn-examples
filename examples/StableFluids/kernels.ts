@@ -3,8 +3,8 @@ import * as d from 'typegpu/data';
 import * as std from 'typegpu/std';
 import {
   BrushParams,
+  DISPLACEMENT_SCALE,
   Params,
-  SIM_N,
   WORKGROUP_SIZE_X,
   WORKGROUP_SIZE_Y,
 } from './params';
@@ -115,7 +115,7 @@ export const advectFn = tgpu['~unstable'].computeFn({
   const finalVel = std.select(
     velAtOldCoords,
     d.vec4f(0, 0, 0, 1),
-    std.any(isBorder),
+    std.any(isBorder) && advectLayout.$.simParams.enableBoundary === 1,
   );
 
   std.textureStore(advectLayout.$.dst, coords, finalVel);
@@ -324,7 +324,7 @@ export const fragmentInkFn = tgpu['~unstable'].fragmentFn({
     renderLayout.$.linSampler,
     inp.uv,
   ).x;
-  return d.vec4f(dens, dens * 0.8, dens * 0.5, d.f32(1.0));
+  return d.vec4f(dens, dens * 0.8, dens * 0.5, 1);
 });
 
 export const fragmentVelFn = tgpu['~unstable'].fragmentFn({
@@ -350,7 +350,7 @@ export const fragmentImageFn = tgpu['~unstable'].fragmentFn({
   in: { uv: d.vec2f },
   out: d.vec4f,
 })((inp) => {
-  const EPS = d.f32(0.5) / SIM_N;
+  const EPS = DISPLACEMENT_SCALE;
 
   const left = std.textureSample(
     renderLayout.$.result,
@@ -386,7 +386,7 @@ export const fragmentImageFn = tgpu['~unstable'].fragmentFn({
   const color = std.textureSample(
     renderLayout.$.background,
     renderLayout.$.linSampler,
-    d.vec2f(offsetUV.x, 1.0 - offsetUV.y),
+    d.vec2f(offsetUV.x, offsetUV.y),
   );
 
   return d.vec4f(color.xyz, 1.0);
