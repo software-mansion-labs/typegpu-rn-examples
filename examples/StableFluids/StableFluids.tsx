@@ -10,6 +10,7 @@ import {
   View,
   Text,
   Switch,
+  TouchableOpacity,
 } from 'react-native';
 import {
   type MutableRefObject,
@@ -204,47 +205,39 @@ async function createScene({
     inkDst: newInkTex.createView('writeonly'),
   });
 
-  const addInkBindGroups = [0, 1].map((i) => {
-    const srcIdx = i;
-    const dstIdx = 1 - i;
-    return root.createBindGroup(k.addInkLayout, {
-      src: inkTex[srcIdx].createView('sampled'),
+  const addInkBindGroups = [0, 1].map((i) =>
+    root.createBindGroup(k.addInkLayout, {
+      src: inkTex[i].createView('sampled'),
       add: newInkTex.createView('sampled'),
-      dst: inkTex[dstIdx].createView('writeonly'),
-    });
-  });
+      dst: inkTex[1 - i].createView('writeonly'),
+    }),
+  );
 
-  const addForceBindGroups = [0, 1].map((i) => {
-    const srcIdx = i;
-    const dstIdx = 1 - i;
-    return root.createBindGroup(k.addForcesLayout, {
-      src: velTex[srcIdx].createView('sampled'),
+  const addForceBindGroups = [0, 1].map((i) =>
+    root.createBindGroup(k.addForcesLayout, {
+      src: velTex[i].createView('sampled'),
       force: forceTex.createView('sampled'),
-      dst: velTex[dstIdx].createView('writeonly'),
+      dst: velTex[1 - i].createView('writeonly'),
       simParams: simParamBuffer,
-    });
-  });
+    }),
+  );
 
-  const advectBindGroups = [0, 1].map((i) => {
-    const srcIdx = 1 - i;
-    const dstIdx = i;
-    return root.createBindGroup(k.advectLayout, {
-      src: velTex[srcIdx].createView('sampled'),
-      dst: velTex[dstIdx].createView('writeonly'),
+  const advectBindGroups = [0, 1].map((i) =>
+    root.createBindGroup(k.advectLayout, {
+      src: velTex[1 - i].createView('sampled'),
+      dst: velTex[i].createView('writeonly'),
       simParams: simParamBuffer,
       linSampler,
-    });
-  });
+    }),
+  );
 
-  const diffusionBindGroups = [0, 1].map((i) => {
-    const srcIdx = i;
-    const dstIdx = 1 - i;
-    return root.createBindGroup(k.diffusionLayout, {
-      in: velTex[srcIdx].createView('sampled'),
-      out: velTex[dstIdx].createView('writeonly'),
+  const diffusionBindGroups = [0, 1].map((i) =>
+    root.createBindGroup(k.diffusionLayout, {
+      in: velTex[i].createView('sampled'),
+      out: velTex[1 - i].createView('writeonly'),
       simParams: simParamBuffer,
-    });
-  });
+    }),
+  );
 
   const divergenceBindGroups = [0, 1].map((i) =>
     root.createBindGroup(k.divergenceLayout, {
@@ -253,14 +246,13 @@ async function createScene({
     }),
   );
 
-  const pressureBindGroups = [0, 1].map((i) => {
-    const dstIdx = 1 - i;
-    return root.createBindGroup(k.pressureLayout, {
+  const pressureBindGroups = [0, 1].map((i) =>
+    root.createBindGroup(k.pressureLayout, {
       x: pressureTex[i].createView('sampled'),
       b: divergenceTex.createView('sampled'),
-      out: pressureTex[dstIdx].createView('writeonly'),
-    });
-  });
+      out: pressureTex[1 - i].createView('writeonly'),
+    }),
+  );
 
   const projectBindGroups = [0, 1].map((velIdx) =>
     [0, 1].map((pIdx) =>
@@ -433,8 +425,8 @@ export default function () {
       context: GPUCanvasContext;
       device: GPUDevice;
       presentationFormat: GPUTextureFormat;
-    }) => {
-      return await createScene({
+    }) =>
+      await createScene({
         context,
         device,
         presentationFormat,
@@ -442,8 +434,7 @@ export default function () {
         showField: showFieldRef,
         canvasSize,
         enableBoundary: enableBoundaryRef,
-      });
-    },
+      }),
     [],
   );
 
@@ -521,9 +512,9 @@ export default function () {
           width: '100%',
           aspectRatio: 1,
         }}
-        onTouchStart={(e) => handleStart(e)}
-        onTouchMove={(e) => handleMove(e)}
-        onTouchEnd={() => handleEnd()}
+        onTouchStart={handleStart}
+        onTouchMove={handleMove}
+        onTouchEnd={handleEnd}
       />
       <View>
         <View
@@ -535,7 +526,7 @@ export default function () {
           }}
         >
           {(['ink', 'velocity', 'image'] as DisplayMode[]).map((field) => (
-            <View
+            <TouchableOpacity
               key={field}
               style={{
                 padding: 10,
@@ -543,11 +534,10 @@ export default function () {
                 borderRadius: 20,
                 margin: 10,
               }}
-              onStartShouldSetResponder={() => true}
-              onResponderRelease={() => handleShowField(field)}
+              onPress={() => handleShowField(field)}
             >
               <Text>{field}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
         <View
