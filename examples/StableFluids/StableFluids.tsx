@@ -5,7 +5,6 @@ import { useWebGPU } from '../../useWebGPU';
 import { Canvas } from 'react-native-wgpu';
 import {
   type GestureResponderEvent,
-  Image,
   PixelRatio,
   View,
   Text,
@@ -31,8 +30,7 @@ import {
 } from './params';
 import { resampleImageBitmapToTexture } from './imageResizer';
 import type { BrushInfo, DisplayMode, RenderEntries } from './types';
-
-const imageAsset = Image.resolveAssetSource(require('../../assets/plums.jpg'));
+import base64image from './backgroundImageBase64';
 
 class DoubleBuffer<T> {
   buffers: [T, T];
@@ -111,7 +109,7 @@ async function createScene({
       .$name(name);
   }
 
-  const plumsResponse = await fetch(imageAsset.uri);
+  const plumsResponse = await fetch(base64image);
   const plumsImage = await createImageBitmap(await plumsResponse.blob());
   const resized = await resampleImageBitmapToTexture(
     root,
