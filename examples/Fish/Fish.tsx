@@ -8,17 +8,22 @@ import * as p from './params';
 import { fragmentShader, vertexShader } from './render';
 import {
   Camera,
+  computeBindGroupLayout,
   type ModelData,
   ModelDataArray,
-  MouseRay,
-  computeBindGroupLayout,
   modelVertexLayout,
+  MouseRay,
   renderBindGroupLayout,
   renderInstanceLayout,
 } from './schemas';
-
 import { Dimensions, Text, View } from 'react-native';
 import { useWebGPU } from '../../useWebGPU';
+import {
+  fishModel as fishModelB64,
+  fishTexture,
+  floorModel,
+  floorTexture,
+} from './base64resources';
 
 export default function () {
   const ref = useWebGPU(
@@ -28,19 +33,11 @@ export default function () {
       // models and textures
 
       // https://sketchfab.com/3d-models/animated-low-poly-fish-64adc2e5a4be471e8279532b9610c878
-      const fishModel = await loadModel(
-        root,
-        'https://docs.swmansion.com/TypeGPU/assets/3d-fish/fish.obj',
-        'https://docs.swmansion.com/TypeGPU/assets/3d-fish/fish.jpg',
-      );
+      const fishModel = await loadModel(root, fishModelB64, fishTexture);
 
       // https://www.cgtrader.com/free-3d-models/space/other/rainy-ocean
       // https://www.rawpixel.com/image/6032317/white-sand-texture-free-public-domain-cc0-photo
-      const oceanFloorModel = await loadModel(
-        root,
-        'https://docs.swmansion.com/TypeGPU/assets/3d-fish/ocean_floor.obj',
-        'https://docs.swmansion.com/TypeGPU/assets/3d-fish/ocean_floor.png',
-      );
+      const oceanFloorModel = await loadModel(root, floorModel, floorTexture);
 
       // buffers
 

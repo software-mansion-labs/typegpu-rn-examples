@@ -4,18 +4,29 @@ import type { TgpuRoot } from 'typegpu';
 import * as d from 'typegpu/data';
 import { modelVertexLayout } from './schemas';
 
+function base64ToArrayBuffer(base64: string) {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
 export async function loadModel(
   root: TgpuRoot,
-  modelPath: string,
-  texturePath: string,
+  modelBase64: string,
+  textureBase64: string,
 ) {
-  const modelMesh = await load(modelPath, OBJLoader);
+  const modelData = base64ToArrayBuffer(modelBase64);
+  const modelMesh = await load(modelData, OBJLoader);
   const polygonCount = modelMesh.attributes.POSITION.value.length / 3;
 
   const vertexBuffer = root
     .createBuffer(modelVertexLayout.schemaForCount(polygonCount))
     .$usage('vertex')
-    .$name(`model vertices of ${modelPath}`);
+    .$name('model vertices');
 
   const modelVertices = [];
   for (let i = 0; i < polygonCount; i++) {
@@ -40,7 +51,7 @@ export async function loadModel(
 
   vertexBuffer.write(modelVertices);
 
-  const textureResponse = await fetch(texturePath);
+  const textureResponse = await fetch(textureBase64);
   const imageBitmap = await createImageBitmap(await textureResponse.blob());
   const texture = root['~unstable']
     .createTexture({
@@ -48,7 +59,7 @@ export async function loadModel(
       format: 'rgba8unorm',
     })
     .$usage('sampled', 'render')
-    .$name(`texture from ${texturePath}`);
+    .$name('model texture');
 
   root.device.queue.copyExternalImageToTexture(
     { source: imageBitmap },
