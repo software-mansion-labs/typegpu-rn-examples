@@ -6,8 +6,9 @@ import FluidDoubleBuffering from './examples/FluidDoubleBuffering';
 import FluidWithAtomics from './examples/FluidWithAtomics';
 import FunctionVisualizer from './examples/FunctionVisualizer';
 import GameOfLife from './examples/GameOfLife';
+import CubemapReflection from './examples/Icosphere/CubemapReflection';
 
-const examples = ['🐠', '🚰', '🎮', '📈', '🛁', '🐥'];
+const examples = ['🐠', '🚰', '🎮', '📈', '🛁', '🐥', '🧊'] as const;
 
 export default function App() {
   const [currentExample, setCurrentExample] =
@@ -37,6 +38,8 @@ export default function App() {
           <FunctionVisualizer />
         ) : currentExample === '🐠' ? (
           <Fish />
+        ) : currentExample === '🧊' ? (
+          <CubemapReflection />
         ) : null}
       </View>
       <View
