@@ -241,8 +241,7 @@ export default function () {
       .computeFn({
         in: { gid: d.builtin.globalInvocationId },
         workgroupSize: [1],
-      })
-      .does((input) => {
+      })((input) => {
         const x = d.i32(input.gid.x);
         const y = d.i32(input.gid.y);
         const index = coordsToIndex(x, y);
@@ -425,8 +424,7 @@ export default function () {
       .computeFn({
         in: { gid: d.builtin.globalInvocationId },
         workgroupSize: [8, 8],
-      })
-      .does((input) => {
+      })((input) => {
         const x = d.i32(input.gid.x);
         const y = d.i32(input.gid.y);
         const index = coordsToIndex(x, y);
@@ -492,31 +490,29 @@ export default function () {
       .vertexFn({
         in: { idx: d.builtin.vertexIndex },
         out: { pos: d.builtin.position, uv: d.vec2f },
-      })
-      .does(/* wgsl */ `(input: VertexInput) -> VertexOut {
-    var pos = array<vec2f, 4>(
-      vec2(1, 1), // top-right
-      vec2(-1, 1), // top-left
-      vec2(1, -1), // bottom-right
-      vec2(-1, -1) // bottom-left
-    );
+      })(/* wgsl */ `{
+        var pos = array<vec2f, 4>(
+          vec2(1, 1), // top-right
+          vec2(-1, 1), // top-left
+          vec2(1, -1), // bottom-right
+          vec2(-1, -1) // bottom-left
+        );
 
-    var uv = array<vec2f, 4>(
-      vec2(1., 1.), // top-right
-      vec2(0., 1.), // top-left
-      vec2(1., 0.), // bottom-right
-      vec2(0., 0.) // bottom-left
-    );
+        var uv = array<vec2f, 4>(
+          vec2(1., 1.), // top-right
+          vec2(0., 1.), // top-left
+          vec2(1., 0.), // bottom-right
+          vec2(0., 0.) // bottom-left
+        );
 
-    var output: VertexOut;
-    output.pos = vec4f(pos[input.idx].x, pos[input.idx].y, 0.0, 1.0);
-    output.uv = uv[input.idx];
-    return output;
-  }`);
+        var output: Out;
+        output.pos = vec4f(pos[in.idx].x, pos[in.idx].y, 0.0, 1.0);
+        output.uv = uv[in.idx];
+        return output;
+      }`);
 
     const fragmentMain = tgpu['~unstable']
-      .fragmentFn({ in: { uv: d.vec2f }, out: d.vec4f })
-      .does((input) => {
+      .fragmentFn({ in: { uv: d.vec2f }, out: d.vec4f })((input) => {
         const x = d.i32(input.uv.x * d.f32(gridSizeUniform.value));
         const y = d.i32(input.uv.y * d.f32(gridSizeUniform.value));
 

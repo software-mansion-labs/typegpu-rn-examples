@@ -287,8 +287,7 @@ export default function () {
           idx: d.builtin.instanceIndex,
         },
         out: { pos: d.builtin.position, cell: d.f32 },
-      })
-      .does((input) => {
+      })((input) => {
         const w = sizeUniform.value.x;
         const h = sizeUniform.value.y;
         const x =
@@ -320,8 +319,7 @@ export default function () {
       });
 
     const fragment = tgpu['~unstable']
-      .fragmentFn({ in: { cell: d.f32 }, out: d.location(0, d.vec4f) })
-      .does((input) => {
+      .fragmentFn({ in: { cell: d.f32 }, out: d.location(0, d.vec4f) })((input) => {
         if (input.cell === -1) {
           return d.vec4f(41 * 0.00390625, 44 * 0.00390625, 119 * 0.00390625, 1);
         }
@@ -419,8 +417,7 @@ export default function () {
       .computeFn({
         in: { gid: d.builtin.globalInvocationId },
         workgroupSize: [options.workgroupSize, options.workgroupSize],
-      })
-      .does((input) => {
+      })((input) => {
         decideWaterLevel(input.gid.x, input.gid.y);
       });
 

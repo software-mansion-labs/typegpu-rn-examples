@@ -46,21 +46,20 @@ const mainVert = tgpu['~unstable']
   .vertexFn({
     in: { v: d.vec2f, center: d.vec2f, velocity: d.vec2f },
     out: VertexOutput,
-  })
-  .does(/* wgsl */ `(input: VertexInput) -> VertexOutput {
-let angle = getRotationFromVelocity(input.velocity);
-let rotated = rotate(input.v, angle);
+  })(/* wgsl */ `{
+    let angle = getRotationFromVelocity(in.velocity);
+    let rotated = rotate(in.v, angle);
 
-let pos = vec4(rotated + input.center, 0.0, 1.0);
+    let pos = vec4(rotated + in.center, 0.0, 1.0);
 
-let color = vec4(
-    sin(angle + colorPalette.r) * 0.45 + 0.45,
-    sin(angle + colorPalette.g) * 0.45 + 0.45,
-    sin(angle + colorPalette.b) * 0.45 + 0.45,
-    1.0);
+    let color = vec4(
+        sin(angle + colorPalette.r) * 0.45 + 0.45,
+        sin(angle + colorPalette.g) * 0.45 + 0.45,
+        sin(angle + colorPalette.b) * 0.45 + 0.45,
+        1.0);
 
-return VertexOutput(pos, color);
-}`)
+    return Out(pos, color);
+  }`)
   .$uses({
     trianglePos,
     colorPalette,
@@ -69,12 +68,9 @@ return VertexOutput(pos, color);
   });
 
 const mainFrag = tgpu['~unstable']
-  .fragmentFn({ in: VertexOutput, out: d.vec4f })
-  .does(/* wgsl */ `
-(input: FragmentInput) -> @location(0) vec4f {
-return input.color;
-}
-`);
+  .fragmentFn({ in: VertexOutput, out: d.vec4f })(/* wgsl */ `{
+    return in.color;
+  }`);
 
 const Params = d
   .struct({
@@ -214,61 +210,60 @@ export default function () {
       .computeFn({
         in: { gid: d.builtin.globalInvocationId },
         workgroupSize: [1],
-      })
-      .does(/* wgsl */ `(input: ComputeInput) {
-    let index = input.gid.x;
-    var instanceInfo = currentTrianglePos[index];
-    var separation = vec2f();
-    var alignment = vec2f();
-    var cohesion = vec2f();
-    var alignmentCount = 0u;
-    var cohesionCount = 0u;
+      })(/* wgsl */ `{
+        let index = in.gid.x;
+        var instanceInfo = currentTrianglePos[index];
+        var separation = vec2f();
+        var alignment = vec2f();
+        var cohesion = vec2f();
+        var alignmentCount = 0u;
+        var cohesionCount = 0u;
 
-    for (var i = 0u; i < arrayLength(&currentTrianglePos); i += 1) {
-      if (i == index) {
-        continue;
-      }
-      var other = currentTrianglePos[i];
-      var dist = distance(instanceInfo.position, other.position);
-      if (dist < params.separationDistance) {
-        separation += instanceInfo.position - other.position;
-      }
-      if (dist < params.alignmentDistance) {
-        alignment += other.velocity;
-        alignmentCount++;
-      }
-      if (dist < params.cohesionDistance) {
-        cohesion += other.position;
-        cohesionCount++;
-      }
-    };
-    if (alignmentCount > 0u) {
-      alignment = alignment / f32(alignmentCount);
-    }
-    if (cohesionCount > 0u) {
-      cohesion = (cohesion / f32(cohesionCount)) - instanceInfo.position;
-    }
-    instanceInfo.velocity +=
-      (separation * params.separationStrength)
-      + (alignment * params.alignmentStrength)
-      + (cohesion * params.cohesionStrength);
-    instanceInfo.velocity = normalize(instanceInfo.velocity) * clamp(length(instanceInfo.velocity), 0.0, 0.01);
+        for (var i = 0u; i < arrayLength(&currentTrianglePos); i += 1) {
+          if (i == index) {
+            continue;
+          }
+          var other = currentTrianglePos[i];
+          var dist = distance(instanceInfo.position, other.position);
+          if (dist < params.separationDistance) {
+            separation += instanceInfo.position - other.position;
+          }
+          if (dist < params.alignmentDistance) {
+            alignment += other.velocity;
+            alignmentCount++;
+          }
+          if (dist < params.cohesionDistance) {
+            cohesion += other.position;
+            cohesionCount++;
+          }
+        };
+        if (alignmentCount > 0u) {
+          alignment = alignment / f32(alignmentCount);
+        }
+        if (cohesionCount > 0u) {
+          cohesion = (cohesion / f32(cohesionCount)) - instanceInfo.position;
+        }
+        instanceInfo.velocity +=
+          (separation * params.separationStrength)
+          + (alignment * params.alignmentStrength)
+          + (cohesion * params.cohesionStrength);
+        instanceInfo.velocity = normalize(instanceInfo.velocity) * clamp(length(instanceInfo.velocity), 0.0, 0.01);
 
-    if (instanceInfo.position[0] > 1.0 + triangleSize) {
-      instanceInfo.position[0] = -1.0 - triangleSize;
-    }
-    if (instanceInfo.position[1] > 1.0 + triangleSize) {
-      instanceInfo.position[1] = -1.0 - triangleSize;
-    }
-    if (instanceInfo.position[0] < -1.0 - triangleSize) {
-      instanceInfo.position[0] = 1.0 + triangleSize;
-    }
-    if (instanceInfo.position[1] < -1.0 - triangleSize) {
-      instanceInfo.position[1] = 1.0 + triangleSize;
-    }
-    instanceInfo.position += instanceInfo.velocity;
-    nextTrianglePos[index] = instanceInfo;
-  }`)
+        if (instanceInfo.position[0] > 1.0 + triangleSize) {
+          instanceInfo.position[0] = -1.0 - triangleSize;
+        }
+        if (instanceInfo.position[1] > 1.0 + triangleSize) {
+          instanceInfo.position[1] = -1.0 - triangleSize;
+        }
+        if (instanceInfo.position[0] < -1.0 - triangleSize) {
+          instanceInfo.position[0] = 1.0 + triangleSize;
+        }
+        if (instanceInfo.position[1] < -1.0 - triangleSize) {
+          instanceInfo.position[1] = 1.0 + triangleSize;
+        }
+        instanceInfo.position += instanceInfo.velocity;
+        nextTrianglePos[index] = instanceInfo;
+      }`)
       .$uses({ currentTrianglePos, nextTrianglePos, params, triangleSize });
 
     const computePipeline = root['~unstable']
