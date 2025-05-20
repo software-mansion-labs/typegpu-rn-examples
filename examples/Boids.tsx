@@ -7,21 +7,22 @@ import { useWebGPU } from '../useWebGPU';
 const triangleAmount = 500;
 const triangleSize = 0.08;
 
-const rotate = tgpu['~unstable'].fn([d.vec2f, d.f32], d.vec2f).does(/* wgsl */ `
-  (v: vec2f, angle: f32) -> vec2f {
-    let pos = vec2(
-      (v.x * cos(angle)) - (v.y * sin(angle)),
-      (v.x * sin(angle)) + (v.y * cos(angle))
-    );
+const rotate = tgpu['~unstable'].fn(
+  [d.vec2f, d.f32],
+  d.vec2f,
+)(/* wgsl */ `(v: vec2f, angle: f32) -> vec2f {
+  let pos = vec2(
+    (v.x * cos(angle)) - (v.y * sin(angle)),
+    (v.x * sin(angle)) + (v.y * cos(angle))
+  );
 
-    return pos;
-  }
-`);
+  return pos;
+}`);
 
-const getRotationFromVelocity = tgpu['~unstable']
-  .fn([d.vec2f], d.f32)
-  .does(/* wgsl */ `
-  (velocity: vec2f) -> f32 {
+const getRotationFromVelocity = tgpu['~unstable'].fn(
+  [d.vec2f],
+  d.f32,
+)(/* wgsl */ `(velocity: vec2f) -> f32 {
   return -atan2(velocity.x, velocity.y);
 }`);
 
@@ -53,10 +54,11 @@ const mainVert = tgpu['~unstable']
     let pos = vec4(rotated + in.center, 0.0, 1.0);
 
     let color = vec4(
-        sin(angle + colorPalette.r) * 0.45 + 0.45,
-        sin(angle + colorPalette.g) * 0.45 + 0.45,
-        sin(angle + colorPalette.b) * 0.45 + 0.45,
-        1.0);
+      sin(angle + colorPalette.r) * 0.45 + 0.45,
+      sin(angle + colorPalette.g) * 0.45 + 0.45,
+      sin(angle + colorPalette.b) * 0.45 + 0.45,
+      1.0,
+    );
 
     return Out(pos, color);
   }`)
@@ -67,10 +69,12 @@ const mainVert = tgpu['~unstable']
     rotate,
   });
 
-const mainFrag = tgpu['~unstable']
-  .fragmentFn({ in: VertexOutput, out: d.vec4f })(/* wgsl */ `{
-    return in.color;
-  }`);
+const mainFrag = tgpu['~unstable'].fragmentFn({
+  in: VertexOutput,
+  out: d.vec4f,
+})(/* wgsl */ `{
+  return in.color;
+}`);
 
 const Params = d
   .struct({
