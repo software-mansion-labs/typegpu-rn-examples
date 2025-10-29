@@ -1,13 +1,13 @@
 import tgpu from 'typegpu';
 import * as d from 'typegpu/data';
 import * as std from 'typegpu/std';
-import * as p from './params';
+import * as p from './params.ts';
 import {
   ModelVertexInput,
   ModelVertexOutput,
   renderBindGroupLayout,
-} from './schemas';
-import { hsvToRgb, rgbToHsv } from './tgsl-helpers';
+} from './schemas.ts';
+import { hsvToRgb, rgbToHsv } from './tgsl-helpers.ts';
 
 const { camera, modelTexture, sampler, modelData } =
   renderBindGroupLayout.bound;
@@ -26,15 +26,15 @@ export const vertexShader = tgpu['~unstable']
     const direction = std.normalize(currentModelData.direction);
 
     const yaw = std.atan2(direction.z, direction.x) + Math.PI;
-    // biome-ignore format:
+    // biome-ignore format: better that way
     const yawMatrix = d.mat3x3f(
       std.cos(yaw),  0, std.sin(yaw),
-      0,             1, 0,           
+      0,             1, 0,
       -std.sin(yaw), 0, std.cos(yaw),
     );
 
     const pitch = -std.asin(-direction.y);
-    // biome-ignore format:
+    // biome-ignore format: better that way
     const pitchMatrix = d.mat3x3f(
       std.cos(pitch), -std.sin(pitch), 0,
       std.sin(pitch), std.cos(pitch),  0,
@@ -72,13 +72,15 @@ export const vertexShader = tgpu['~unstable']
   })
   .$name('vertex shader');
 
-const sampleTexture = tgpu['~unstable']
+const sampleTexture = tgpu
   .fn(
     [d.vec2f],
     d.vec4f,
-  )(/* wgsl */ `(uv: vec2f) -> vec4f {
+  )(
+    /* wgsl */ `(uv: vec2f) -> vec4f {
     return textureSample(shaderTexture, shaderSampler, uv);
-  }`)
+  }`,
+  )
   .$uses({ shaderTexture: modelTexture, shaderSampler: sampler })
   .$name('sampleShader');
 

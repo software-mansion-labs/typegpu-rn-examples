@@ -1,30 +1,27 @@
 import { Canvas } from 'react-native-wgpu';
 import tgpu from 'typegpu';
 import * as d from 'typegpu/data';
+import * as std from 'typegpu/std';
 
-import { useWebGPU } from '../useWebGPU';
+import { useWebGPU } from '../useWebGPU.ts';
 
 const triangleAmount = 500;
 const triangleSize = 0.08;
 
-const rotate = tgpu['~unstable'].fn(
-  [d.vec2f, d.f32],
-  d.vec2f,
-)(/* wgsl */ `(v: vec2f, angle: f32) -> vec2f {
-  let pos = vec2(
-    (v.x * cos(angle)) - (v.y * sin(angle)),
-    (v.x * sin(angle)) + (v.y * cos(angle))
+const rotate = (v: d.v2f, angle: number) => {
+  'use gpu';
+  const pos = d.vec2f(
+    v.x * std.cos(angle) - v.y * std.sin(angle),
+    v.x * std.sin(angle) + v.y * std.cos(angle),
   );
 
   return pos;
-}`);
+};
 
-const getRotationFromVelocity = tgpu['~unstable'].fn(
-  [d.vec2f],
-  d.f32,
-)(/* wgsl */ `(velocity: vec2f) -> f32 {
-  return -atan2(velocity.x, velocity.y);
-}`);
+const getRotationFromVelocity = (velocity: d.v2f) => {
+  'use gpu';
+  return -std.atan2(velocity.x, velocity.y);
+};
 
 const TriangleData = d.struct({
   position: d.vec2f,
@@ -36,45 +33,39 @@ const renderBindGroupLayout = tgpu.bindGroupLayout({
   colorPalette: { uniform: d.vec3f },
 });
 
-const { trianglePos, colorPalette } = renderBindGroupLayout.bound;
-
 const VertexOutput = {
   position: d.builtin.position,
   color: d.vec4f,
 };
 
-const mainVert = tgpu['~unstable']
-  .vertexFn({
-    in: { v: d.vec2f, center: d.vec2f, velocity: d.vec2f },
-    out: VertexOutput,
-  })(/* wgsl */ `{
-    let angle = getRotationFromVelocity(in.velocity);
-    let rotated = rotate(in.v, angle);
+const mainVert = tgpu['~unstable'].vertexFn({
+  in: { v: d.vec2f, center: d.vec2f, velocity: d.vec2f },
+  out: VertexOutput,
+})(({ v, center, velocity }) => {
+  const angle = getRotationFromVelocity(velocity);
+  const rotated = rotate(v, angle);
 
-    let pos = vec4(rotated + in.center, 0.0, 1.0);
+  const pos = d.vec4f(rotated.add(center), 0.0, 1.0);
+  const color = d.vec4f(
+    std
+      .sin(renderBindGroupLayout.$.colorPalette.add(angle))
+      .mul(0.45)
+      .add(0.45),
+    1.0,
+  );
 
-    let color = vec4(
-      sin(angle + colorPalette.r) * 0.45 + 0.45,
-      sin(angle + colorPalette.g) * 0.45 + 0.45,
-      sin(angle + colorPalette.b) * 0.45 + 0.45,
-      1.0,
-    );
-
-    return Out(pos, color);
-  }`)
-  .$uses({
-    trianglePos,
-    colorPalette,
-    getRotationFromVelocity,
-    rotate,
-  });
+  return {
+    position: pos,
+    color: color,
+  };
+});
 
 const mainFrag = tgpu['~unstable'].fragmentFn({
   in: VertexOutput,
   out: d.vec4f,
-})(/* wgsl */ `{
-  return in.color;
-}`);
+})(({ color }) => {
+  return color;
+});
 
 const Params = d
   .struct({

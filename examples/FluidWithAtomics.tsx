@@ -3,7 +3,7 @@ import tgpu from 'typegpu';
 import * as d from 'typegpu/data';
 import * as std from 'typegpu/std';
 
-import { useWebGPU } from '../useWebGPU';
+import { useWebGPU } from '../useWebGPU.ts';
 
 const MAX_WATER_LEVEL_UNPRESSURIZED = tgpu['~unstable'].const(d.u32, 0xff);
 const MAX_WATER_LEVEL = tgpu['~unstable'].const(d.u32, (1 << 24) - 1);

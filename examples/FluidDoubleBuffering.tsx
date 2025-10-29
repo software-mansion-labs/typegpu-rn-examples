@@ -1,9 +1,9 @@
 import { Canvas } from 'react-native-wgpu';
-import tgpu, { type TgpuBufferReadonly, type TgpuBufferMutable } from 'typegpu';
+import tgpu, { type TgpuBufferMutable, type TgpuBufferReadonly } from 'typegpu';
 import * as d from 'typegpu/data';
 import * as std from 'typegpu/std';
 
-import { useWebGPU } from '../useWebGPU';
+import { useWebGPU } from '../useWebGPU.ts';
 
 const MAX_GRID_SIZE = 1024;
 

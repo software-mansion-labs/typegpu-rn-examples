@@ -1,10 +1,10 @@
+import { PixelRatio } from 'react-native';
 import { Canvas } from 'react-native-wgpu';
 import tgpu from 'typegpu';
 import * as d from 'typegpu/data';
+import * as std from 'typegpu/std';
 import { mat4 } from 'wgpu-matrix';
-
-import { PixelRatio } from 'react-native';
-import { useWebGPU } from '../useWebGPU';
+import { useWebGPU } from '../useWebGPU.ts';
 
 export default function () {
   const ref = useWebGPU(({ context, device, presentationFormat, canvas }) => {
@@ -70,54 +70,36 @@ export default function () {
     // Compute shader
 
     const computeLayout = tgpu.bindGroupLayout({
-      lineVertices: {
-        storage: (n: number) => d.arrayOf(d.vec2f, n),
-        access: 'mutable',
-      },
+      lineVertices: { storage: d.arrayOf(d.vec2f), access: 'mutable' },
       properties: { uniform: Properties },
     });
 
-    function createComputeShaderCode(functionCode: string) {
-      const rawComputeCode = /* wgsl */ `
-fn interpolatedFunction(x: f32) -> f32 {
-  return ${functionCode};
-}
-@compute @workgroup_size(1) fn computePoints(@builtin(global_invocation_id) id: vec3u) {
-  let start = (properties.transformation * vec4f(-1, 0, 0, 1)).x;
-  let end = (properties.transformation * vec4f(1, 0, 0, 1)).x;
+    const fnSlot = tgpu.slot<string>();
+    const interpolatedFunction = tgpu.fn([d.f32], d.f32)`(x) {
+      return fnSlot;
+    }`.$uses({ fnSlot });
 
-  let pointX = (start + (end-start)/(f32(properties.interpolationPoints)-1.0) * f32(id.x));
-  let pointY = interpolatedFunction(pointX);
-  let result = properties.inverseTransformation * vec4f(pointX, pointY, 0, 1);
-  lineVertices[id.x] = result.xy;
-}
-  `;
-      return tgpu.resolve({
-        template: rawComputeCode,
-        externals: {
-          ...computeLayout.bound,
-        },
-      });
-    }
+    const computePoints = (x: number) => {
+      'use gpu';
+      const properties = computeLayout.$.properties;
+      const start = properties.transformation.mul(d.vec4f(-1, 0, 0, 1)).x;
+      const end = properties.transformation.mul(d.vec4f(1, 0, 0, 1)).x;
 
-    const computePipelines: Array<GPUComputePipeline> = initialFunctions.map(
-      (functionData, _) => {
-        const computeShaderCode = createComputeShaderCode(functionData.code);
-        const computeShaderModule = device.createShaderModule({
-          label: `Compute function points shader module for f(x) = ${functionData.code}`,
-          code: computeShaderCode,
-        });
+      const pointX =
+        start +
+        ((end - start) / (d.f32(properties.interpolationPoints) - 1.0)) *
+          d.f32(x);
+      const pointY = interpolatedFunction(pointX);
+      const result = properties.inverseTransformation.mul(
+        d.vec4f(pointX, pointY, 0, 1),
+      );
+      computeLayout.$.lineVertices[x] = result.xy;
+    };
 
-        return device.createComputePipeline({
-          label: 'Compute function points pipeline',
-          layout: device.createPipelineLayout({
-            bindGroupLayouts: [root.unwrap(computeLayout)],
-          }),
-          compute: {
-            module: computeShaderModule,
-          },
-        });
-      },
+    const computePipelines = initialFunctions.map(({ code }) =>
+      root['~unstable']
+        .with(fnSlot, code)
+        .createGuardedComputePipeline(computePoints),
     );
 
     // Render background shader
@@ -126,90 +108,59 @@ fn interpolatedFunction(x: f32) -> f32 {
       properties: { uniform: Properties },
     });
 
-    const rawRenderBackgroundCode = /* wgsl */ `
-@vertex fn vs(
-  @builtin(vertex_index) vertexIndex : u32,
-  @builtin(instance_index) instanceIndex : u32,
-) -> @builtin(position) vec4f {
-  let leftBot = properties.transformation * vec4f(-1, -1, 0, 1);
-  let rightTop = properties.transformation * vec4f(1, 1, 0, 1);
-
-  let transformedPoints = array(
-    vec2f(leftBot.x, 0.0),
-    vec2f(rightTop.x, 0.0),
-    vec2f(0.0, leftBot.y),
-    vec2f(0.0, rightTop.y),
-  );
-
-  let currentPoint = properties.inverseTransformation * vec4f(transformedPoints[2 * instanceIndex + vertexIndex/2].xy, 0, 1);
-  return vec4f(
-    currentPoint.x + f32(instanceIndex) * select(-1.0, 1.0, vertexIndex%2 == 0) * 0.005,
-    currentPoint.y + f32(1-instanceIndex) * select(-1.0, 1.0, vertexIndex%2 == 0) * 0.005,
-    currentPoint.zw
-  );
-}
-
-@fragment fn fs() -> @location(0) vec4f {
-  return vec4f(0.9, 0.9, 0.9, 1.0);
-}
-`;
-
-    const renderBackgroundCode = tgpu.resolve({
-      template: rawRenderBackgroundCode,
-      externals: {
-        ...renderBackgroundLayout.bound,
+    const renderBackgroundVertex = tgpu['~unstable'].vertexFn({
+      in: {
+        vid: d.builtin.vertexIndex,
+        iid: d.builtin.instanceIndex,
       },
+      out: {
+        position: d.builtin.position,
+      },
+    })(({ vid, iid }) => {
+      const properties = renderBackgroundLayout.$.properties;
+
+      const leftBot = properties.transformation.mul(d.vec4f(-1, -1, 0, 1));
+      const rightTop = properties.transformation.mul(d.vec4f(1, 1, 0, 1));
+
+      const transformedPoints = d.arrayOf(
+        d.vec2f,
+        4,
+      )([
+        d.vec2f(leftBot.x, 0.0),
+        d.vec2f(rightTop.x, 0.0),
+        d.vec2f(0.0, leftBot.y),
+        d.vec2f(0.0, rightTop.y),
+      ]);
+
+      const currentPoint = properties.inverseTransformation.mul(
+        d.vec4f(transformedPoints[iid * 2 + d.u32(vid / 2)].xy, 0, 1),
+      );
+
+      return {
+        position: d.vec4f(
+          currentPoint.x +
+            d.f32(iid) *
+              std.select(d.f32(-1), 1, d.u32(vid) % d.u32(2) === d.u32(0)) *
+              0.005,
+          currentPoint.y +
+            d.f32(1 - iid) *
+              std.select(d.f32(-1), 1, d.u32(vid) % d.u32(2) === d.u32(0)) *
+              0.005,
+          currentPoint.zw,
+        ),
+      };
     });
 
-    const renderBackgroundModule = device.createShaderModule({
-      label: 'Render module',
-      code: renderBackgroundCode,
-    });
+    const renderBackgroundFragment = tgpu['~unstable'].fragmentFn({
+      out: d.vec4f,
+    })(() => d.vec4f(0.9, 0.9, 0.9, 1.0));
 
-    const renderBackgroundPipeline = device.createRenderPipeline({
-      label: 'Render pipeline',
-      layout: device.createPipelineLayout({
-        bindGroupLayouts: [root.unwrap(renderBackgroundLayout)],
-      }),
-      vertex: {
-        module: renderBackgroundModule,
-      },
-      fragment: {
-        module: renderBackgroundModule,
-        targets: [{ format: presentationFormat }],
-      },
-      primitive: {
-        topology: 'triangle-strip',
-      },
-      multisample: {
-        count: 4,
-      },
-    });
-
-    const msTexture = device.createTexture({
-      size: [
-        canvas.clientWidth * PixelRatio.get(),
-        canvas.clientHeight * PixelRatio.get(),
-      ],
-      sampleCount: 4,
-      format: presentationFormat,
-      usage: GPUTextureUsage.RENDER_ATTACHMENT,
-    });
-
-    const msView = msTexture.createView();
-
-    const renderBackgroundPassDescriptor = {
-      label: 'Render pass',
-      colorAttachments: [
-        {
-          view: msView,
-          resolveTarget: context.getCurrentTexture().createView(),
-          clearValue: [0.6, 0.6, 0.6, 0.6] as const,
-          loadOp: 'clear' as const,
-          storeOp: 'store' as const,
-        },
-      ],
-    };
+    const renderBackgroundPipeline = root['~unstable']
+      .withVertex(renderBackgroundVertex, {})
+      .withFragment(renderBackgroundFragment, { format: presentationFormat })
+      .withMultisample({ count: 4 })
+      .withPrimitive({ topology: 'triangle-strip' })
+      .createPipeline();
 
     // Render shader
 
@@ -219,85 +170,58 @@ fn interpolatedFunction(x: f32) -> f32 {
       color: { uniform: d.vec4f },
     });
 
-    const rawRenderCode = /* wgsl */ `
-fn orthonormalForLine(p1: vec2f, p2: vec2f) -> vec2f {
-  let line = p2 - p1;
-  let ortho = vec2f(-line.y, line.x);
-  return normalize(ortho);
-}
-
-fn orthonormalForVertex(index: u32) -> vec2f {
-  if (index == 0 || index == properties.interpolationPoints-1) {
-    return vec2f(0.0, 1.0);
-  }
-  let previous = lineVertices[index-1];
-  let current = lineVertices[index];
-  let next = lineVertices[index+1];
-
-  let n1 = orthonormalForLine(previous, current);
-  let n2 = orthonormalForLine(current, next);
-
-  let avg = (n1+n2)/2.0;
-
-  return normalize(avg);
-}
-
-@vertex fn vs(@builtin(vertex_index) vertexIndex : u32) -> @builtin(position) vec4f {
-  let currentVertex = vertexIndex/2;
-  let orthonormal = orthonormalForVertex(currentVertex);
-  let offset = orthonormal * properties.lineWidth * select(-1.0, 1.0, vertexIndex%2 == 0);
-  return vec4f(lineVertices[currentVertex] + offset, 0.0, 1.0);
-}
-
-@fragment fn fs() -> @location(0) vec4f {
-  return color;
-}
-`;
-
-    const renderCode = tgpu.resolve({
-      template: rawRenderCode,
-      externals: {
-        ...renderLayout.bound,
-      },
-    });
-
-    const renderModule = device.createShaderModule({
-      label: 'Render module',
-      code: renderCode,
-    });
-
-    const renderPipeline = device.createRenderPipeline({
-      label: 'Render pipeline',
-      layout: device.createPipelineLayout({
-        bindGroupLayouts: [root.unwrap(renderLayout)],
-      }),
-      vertex: {
-        module: renderModule,
-      },
-      fragment: {
-        module: renderModule,
-        targets: [{ format: presentationFormat }],
-      },
-      primitive: {
-        topology: 'triangle-strip',
-      },
-      multisample: {
-        count: 4,
-      },
-    });
-
-    const renderPassDescriptor = {
-      label: 'Render pass',
-      colorAttachments: [
-        {
-          view: msView,
-          resolveTarget: context.getCurrentTexture().createView(),
-          clearValue: [0.3, 0.3, 0.3, 0.3] as const,
-          loadOp: 'load' as const,
-          storeOp: 'store' as const,
-        },
-      ],
+    const orthoNormalForLine = (p1: d.v2f, p2: d.v2f) => {
+      'use gpu';
+      const line = p2.sub(p1);
+      const ortho = d.vec2f(-line.y, line.x);
+      return std.normalize(ortho);
     };
+
+    const orthoNormalForVertex = (index: number) => {
+      'use gpu';
+      const properties = renderLayout.$.properties;
+      if (index === 0 || index === properties.interpolationPoints - 1) {
+        return d.vec2f(0.0, 1.0);
+      }
+      const previous = renderLayout.$.lineVertices[index - 1];
+      const current = renderLayout.$.lineVertices[index];
+      const next = renderLayout.$.lineVertices[index + 1];
+
+      const n1 = orthoNormalForLine(previous, current);
+      const n2 = orthoNormalForLine(current, next);
+
+      const avg = n1.add(n2).div(2.0);
+
+      return std.normalize(avg);
+    };
+
+    const renderVertex = tgpu['~unstable'].vertexFn({
+      in: { vid: d.builtin.vertexIndex },
+      out: { position: d.builtin.position },
+    })(({ vid }) => {
+      const currentVertex = d.u32(vid / 2);
+      const orthonormal = orthoNormalForVertex(currentVertex);
+      const properties = renderLayout.$.properties;
+      const offset = orthonormal.mul(
+        properties.lineWidth *
+          std.select(d.f32(-1), d.f32(1), d.u32(vid) % d.u32(2) === d.u32(0)),
+      );
+      const pos = renderLayout.$.lineVertices[currentVertex].add(offset);
+      return {
+        position: d.vec4f(pos, 0.0, 1.0),
+      };
+    });
+
+    const renderFragment = tgpu['~unstable'].fragmentFn({
+      out: d.vec4f,
+    })(() => renderLayout.$.color);
+
+    const renderPipeline = root['~unstable']
+      .withVertex(renderVertex, {})
+      .withFragment(renderFragment, { format: presentationFormat })
+      .withMultisample({ count: 4 })
+      .withPrimitive({ topology: 'triangle-strip' })
+      .createPipeline();
 
     // Draw
 
@@ -327,65 +251,59 @@ fn orthonormalForVertex(index: u32) -> vec2f {
         properties: propertiesBuffer,
       });
 
-      const encoder = device.createCommandEncoder({
-        label: 'Compute function points encoder',
-      });
-
-      const pass = encoder.beginComputePass({
-        label: 'Compute function points compute pass',
-      });
-      pass.setPipeline(computePipeline);
-      pass.setBindGroup(0, root.unwrap(bindGroup));
-      pass.dispatchWorkgroups(properties.interpolationPoints);
-      pass.end();
-
-      device.queue.submit([encoder.finish()]);
+      computePipeline
+        .with(bindGroup)
+        .dispatchThreads(properties.interpolationPoints);
     }
+
+    const msTexture = root['~unstable']
+      .createTexture({
+        size: [
+          canvas.clientWidth * PixelRatio.get(),
+          canvas.clientHeight * PixelRatio.get(),
+        ],
+        sampleCount: 4,
+        format: presentationFormat,
+      })
+      .$usage('render');
 
     function runRenderBackgroundPass() {
       const renderBindGroup = root.createBindGroup(renderBackgroundLayout, {
         properties: propertiesBuffer,
       });
 
-      renderBackgroundPassDescriptor.colorAttachments[0].resolveTarget = context
-        .getCurrentTexture()
-        .createView();
-
-      const encoder = device.createCommandEncoder({ label: 'Render encoder' });
-
-      const pass = encoder.beginRenderPass(renderBackgroundPassDescriptor);
-      pass.setPipeline(renderBackgroundPipeline);
-      pass.setBindGroup(0, root.unwrap(renderBindGroup));
-      pass.draw(4, 2);
-      pass.end();
-
-      const commandBuffer = encoder.finish();
-      device.queue.submit([commandBuffer]);
+      renderBackgroundPipeline
+        .with(renderBindGroup)
+        .withColorAttachment({
+          view: root.unwrap(msTexture).createView(),
+          resolveTarget: context.getCurrentTexture().createView(),
+          clearValue: [0.6, 0.6, 0.6, 0.6],
+          loadOp: 'clear',
+          storeOp: 'store',
+        })
+        .draw(4, 2);
     }
 
     function runRenderPass() {
-      renderPassDescriptor.colorAttachments[0].resolveTarget = context
-        .getCurrentTexture()
-        .createView();
+      const resolveTarget = context.getCurrentTexture();
 
-      const encoder = device.createCommandEncoder({ label: 'Render encoder' });
-
-      const pass = encoder.beginRenderPass(renderPassDescriptor);
-
-      initialFunctions.forEach((_, i) => {
+      initialFunctions.forEach((_, functionNumber) => {
         const renderBindGroup = root.createBindGroup(renderLayout, {
-          lineVertices: lineVerticesBuffers[i],
+          lineVertices: lineVerticesBuffers[functionNumber],
           properties: propertiesBuffer,
-          color: drawColorBuffers[i],
+          color: drawColorBuffers[functionNumber],
         });
-        pass.setPipeline(renderPipeline);
-        pass.setBindGroup(0, root.unwrap(renderBindGroup));
-        // call our vertex shader 2 times per point drawn
-        pass.draw(properties.interpolationPoints * 2);
-      });
-      pass.end();
 
-      device.queue.submit([encoder.finish()]);
+        renderPipeline
+          .with(renderBindGroup)
+          .withColorAttachment({
+            view: root.unwrap(msTexture).createView(),
+            resolveTarget: resolveTarget.createView(),
+            loadOp: 'load',
+            storeOp: 'store',
+          })
+          .draw(properties.interpolationPoints * 2);
+      });
     }
 
     // Helper definitions

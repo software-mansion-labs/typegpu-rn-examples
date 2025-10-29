@@ -36,3 +36,7 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# zed
+.zed/
+.zed/

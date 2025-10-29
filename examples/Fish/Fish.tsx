@@ -1,24 +1,23 @@
+import { Dimensions, Text, View } from 'react-native';
 import { Canvas } from 'react-native-wgpu';
 import tgpu from 'typegpu';
 import * as d from 'typegpu/data';
 import * as m from 'wgpu-matrix';
-import { computeShader } from './compute';
-import { loadModel } from './load-model';
-import * as p from './params';
-import { fragmentShader, vertexShader } from './render';
+import { useWebGPU } from '../../useWebGPU.ts';
+import { computeShader } from './compute.ts';
+import { loadModel } from './load-model.ts';
+import * as p from './params.ts';
+import { fragmentShader, vertexShader } from './render.ts';
 import {
   Camera,
+  computeBindGroupLayout,
   type ModelData,
   ModelDataArray,
   MouseRay,
-  computeBindGroupLayout,
   modelVertexLayout,
   renderBindGroupLayout,
   renderInstanceLayout,
-} from './schemas';
-
-import { Dimensions, Text, View } from 'react-native';
-import { useWebGPU } from '../../useWebGPU';
+} from './schemas.ts';
 
 export default function () {
   const ref = useWebGPU(
@@ -244,7 +243,7 @@ export default function () {
           .withDepthStencilAttachment({
             view: depthTexture.createView(),
             depthClearValue: 1,
-            depthLoadOp: 'load',
+            depthLoadOp: "load",
             depthStoreOp: 'store',
           })
           .with(modelVertexLayout, fishModel.vertexBuffer)

@@ -1,10 +1,15 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "target": "ESNext",
+    "module": "ESNext",
     "strict": true,
-    "typeRoots": [
-      "./node_modules/@webgpu/types",
-      "./node_modules/@types",
-    ]
-  }
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@webgpu/types", "./node_modules/@types"]
+  },
 }

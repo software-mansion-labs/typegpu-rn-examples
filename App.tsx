@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Pressable, SafeAreaView, Text, View } from 'react-native';
-import Boids from './examples/Boids';
-import Fish from './examples/Fish/Fish';
-import FluidDoubleBuffering from './examples/FluidDoubleBuffering';
-import FluidWithAtomics from './examples/FluidWithAtomics';
-import FunctionVisualizer from './examples/FunctionVisualizer';
-import GameOfLife from './examples/GameOfLife';
+import Boids from './examples/Boids.tsx';
+import Fish from './examples/Fish/Fish.tsx';
+import FluidDoubleBuffering from './examples/FluidDoubleBuffering.tsx';
+import FluidWithAtomics from './examples/FluidWithAtomics.tsx';
+import FunctionVisualizer from './examples/FunctionVisualizer.tsx';
+import GameOfLife from './examples/GameOfLife.tsx';
 
 const examples = ['🐠', '🚰', '🎮', '📈', '🛁', '🐥'];
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { PixelRatio } from 'react-native';
-import { type NativeCanvas, useDevice, useGPUContext } from 'react-native-wgpu';
+import { type NativeCanvas, useCanvasRef, useDevice } from 'react-native-wgpu';
 
 interface SceneProps {
   context: GPUCanvasContext;
@@ -11,21 +11,22 @@ interface SceneProps {
 }
 
 type RenderScene = (timestamp: number) => void;
-type Scene = (props: SceneProps) =>
-  | RenderScene
-  | void
-  | Promise<RenderScene>
-  // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-  | Promise<RenderScene | void | Promise<RenderScene>>;
+type Scene = (props: SceneProps) => RenderScene | Promise<RenderScene>;
 
 export const useWebGPU = (scene: Scene) => {
   const { device } = useDevice();
-  const { ref, context } = useGPUContext();
+  const canvasRef = useCanvasRef();
   const animationFrameId = useRef<number | null>(null);
   useEffect(() => {
     (async () => {
-      if (!context || !device) {
+      const ref = canvasRef.current;
+      if (!ref || !device) {
         return;
+      }
+
+      const context = ref.getContext('webgpu');
+      if (!context) {
+        throw new Error('Failed to get WebGPU context from canvas.');
       }
 
       const canvas = context.canvas as HTMLCanvasElement;
@@ -72,6 +73,27 @@ export const useWebGPU = (scene: Scene) => {
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [context, device, scene]);
-  return ref;
+  }, [canvasRef, device, scene]);
+  return canvasRef;
 };
+
+/*
+ * Dev utility to wrap GPU calls with error validation.
+ * If not used the errors will not appear in console (unlike in web).
+ */
+export function withValidate(device: GPUDevice, fn: () => void) {
+  const scopes: GPUErrorFilter[] = ['validation', 'out-of-memory', 'internal'];
+  for (const scope of scopes) {
+    device.pushErrorScope(scope);
+  }
+
+  fn();
+
+  for (const scope of scopes.reverse()) {
+    device.popErrorScope().then((error) => {
+      if (error) {
+        console.error(`GPU Error [${scope}]:`, error.message);
+      }
+    });
+  }
+}
