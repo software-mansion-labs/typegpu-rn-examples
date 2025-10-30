@@ -3,13 +3,17 @@
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.json"],
-    "experimentalScannerIgnores": [
-      "**/dist/*",
-      "**/coverage/*",
-      "**/*.d.ts",
-      "packages/tgpu-wgsl-parser/src/grammar.ts",
-      "**/*.astro"
+    "includes": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.json",
+      "!**/dist/*",
+      "!**/coverage/*",
+      "!**/*.d.ts",
+      "!packages/tgpu-wgsl-parser/src/grammar.ts",
+      "!**/*.astro"
     ]
   },
   "linter": {
