@@ -14,8 +14,7 @@ export async function loadModel(
 
   const vertexBuffer = root
     .createBuffer(modelVertexLayout.schemaForCount(polygonCount))
-    .$usage('vertex')
-    .$name(`model vertices of ${modelPath}`);
+    .$usage('vertex');
 
   const modelVertices = [];
   for (let i = 0; i < polygonCount; i++) {
@@ -47,9 +46,9 @@ export async function loadModel(
       size: [imageBitmap.width, imageBitmap.height],
       format: 'rgba8unorm',
     })
-    .$usage('sampled', 'render')
-    .$name(`texture from ${texturePath}`);
+    .$usage('sampled', 'render');
 
+  // TODO: Move to texture.write() method
   root.device.queue.copyExternalImageToTexture(
     { source: imageBitmap },
     { texture: root.unwrap(texture) },

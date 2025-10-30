@@ -5,9 +5,9 @@ import * as std from 'typegpu/std';
 
 import { useWebGPU } from '../useWebGPU.ts';
 
-const MAX_WATER_LEVEL_UNPRESSURIZED = tgpu['~unstable'].const(d.u32, 0xff);
-const MAX_WATER_LEVEL = tgpu['~unstable'].const(d.u32, (1 << 24) - 1);
-const MAX_PRESSURE = tgpu['~unstable'].const(d.u32, 12);
+const MAX_WATER_LEVEL_UNPRESSURIZED = tgpu.const(d.u32, 0xff);
+const MAX_WATER_LEVEL = tgpu.const(d.u32, (1 << 24) - 1);
+const MAX_PRESSURE = tgpu.const(d.u32, 12);
 
 const options = {
   size: 32,
@@ -57,7 +57,7 @@ export default function () {
       .$usage('vertex')
       .$name('square');
 
-    const getIndex = tgpu['~unstable'].fn(
+    const getIndex = tgpu.fn(
       [d.u32, d.u32],
       d.u32,
     )((x, y) => {
@@ -66,62 +66,48 @@ export default function () {
       return (y % h) * w + (x % w);
     });
 
-    const getCell = tgpu['~unstable'].fn(
+    const getCell = tgpu.fn(
       [d.u32, d.u32],
       d.u32,
     )((x, y) => currentStateStorage.value[getIndex(x, y)]);
 
-    const getCellNext = tgpu['~unstable']
-      .fn(
-        [d.u32, d.u32],
-        d.u32,
-      )(/* wgsl */ ` (x: u32, y: u32) -> u32 {
-        return atomicLoad(&nextStateData[getIndex(x, y)]);
-      }`)
-      .$uses({ nextStateData: nextStateStorage, getIndex });
+    const getCellNext = tgpu.fn(
+      [d.u32, d.u32],
+      d.u32,
+    )((x, y) => std.atomicLoad(nextStateStorage.$[getIndex(x, y)]));
 
-    const updateCell = tgpu['~unstable']
-      .fn([d.u32, d.u32, d.u32])(/* wgsl */ ` (x: u32, y: u32, value: u32) {
-        atomicStore(&nextStateData[getIndex(x, y)], value);
-      }`)
-      .$uses({ nextStateData: nextStateStorage, getIndex });
+    const updateCell = tgpu.fn([d.u32, d.u32, d.u32])((x, y, value) => {
+      std.atomicStore(nextStateStorage.$[getIndex(x, y)], value);
+    });
 
-    const addToCell = tgpu['~unstable']
-      .fn([d.u32, d.u32, d.u32])(/* wgsl */ `(x: u32, y: u32, value: u32) {
-        let cell = getCellNext(x, y);
-        let waterLevel = cell & MAX_WATER_LEVEL;
-        let newWaterLevel = min(waterLevel + value, MAX_WATER_LEVEL);
-        atomicAdd(&nextStateData[getIndex(x, y)], newWaterLevel - waterLevel);
-      }`)
-      .$uses({
-        getCellNext,
-        nextStateData: nextStateStorage,
-        getIndex,
-        MAX_WATER_LEVEL,
-      });
+    const addToCell = tgpu.fn([d.u32, d.u32, d.u32])((x, y, value) => {
+      const cell = getCellNext(x, y);
+      const waterLevel = cell & MAX_WATER_LEVEL.$;
+      const newWaterLevel = std.min(waterLevel + value, MAX_WATER_LEVEL.$);
+      std.atomicAdd(
+        nextStateStorage.$[getIndex(x, y)],
+        newWaterLevel - waterLevel,
+      );
+    });
 
-    const subtractFromCell = tgpu['~unstable']
-      .fn([d.u32, d.u32, d.u32])(/* wgsl */ `(x: u32, y: u32, value: u32) {
-        let cell = getCellNext(x, y);
-        let waterLevel = cell & MAX_WATER_LEVEL;
-        let newWaterLevel = max(waterLevel - min(value, waterLevel), 0u);
-        atomicSub(&nextStateData[getIndex(x, y)], waterLevel - newWaterLevel);
-      }`)
-      .$uses({
-        getCellNext,
-        nextStateData: nextStateStorage,
-        getIndex,
-        MAX_WATER_LEVEL,
-      });
+    const subtractFromCell = tgpu.fn([d.u32, d.u32, d.u32])((x, y, value) => {
+      const cell = getCellNext(x, y);
+      const waterLevel = cell & MAX_WATER_LEVEL.$;
+      const newWaterLevel = std.max(waterLevel - std.min(value, waterLevel), 0);
+      std.atomicSub(
+        nextStateStorage.$[getIndex(x, y)],
+        waterLevel - newWaterLevel,
+      );
+    });
 
-    const persistFlags = tgpu['~unstable'].fn([d.u32, d.u32])((x, y) => {
+    const persistFlags = tgpu.fn([d.u32, d.u32])((x, y) => {
       const cell = getCell(x, y);
       const waterLevel = cell & MAX_WATER_LEVEL.value;
       const flags = cell >> 24;
       updateCell(x, y, (flags << 24) | waterLevel);
     });
 
-    const getStableStateBelow = tgpu['~unstable'].fn(
+    const getStableStateBelow = tgpu.fn(
       [d.u32, d.u32],
       d.u32,
     )((upper, lower) => {
@@ -138,32 +124,32 @@ export default function () {
       return MAX_WATER_LEVEL_UNPRESSURIZED.value;
     });
 
-    const isWall = tgpu['~unstable'].fn(
+    const isWall = tgpu.fn(
       [d.u32, d.u32],
       d.bool,
     )((x, y) => getCell(x, y) >> 24 === 1);
 
-    const isWaterSource = tgpu['~unstable'].fn(
+    const isWaterSource = tgpu.fn(
       [d.u32, d.u32],
       d.bool,
     )((x, y) => getCell(x, y) >> 24 === 2);
 
-    const isWaterDrain = tgpu['~unstable'].fn(
+    const isWaterDrain = tgpu.fn(
       [d.u32, d.u32],
       d.bool,
     )((x, y) => getCell(x, y) >> 24 === 3);
 
-    const isClearCell = tgpu['~unstable'].fn(
+    const isClearCell = tgpu.fn(
       [d.u32, d.u32],
       d.bool,
     )((x, y) => getCell(x, y) >> 24 === 4);
 
-    const getWaterLevel = tgpu['~unstable'].fn(
+    const getWaterLevel = tgpu.fn(
       [d.u32, d.u32],
       d.u32,
     )((x, y) => getCell(x, y) & MAX_WATER_LEVEL.value);
 
-    const checkForFlagsAndBounds = tgpu['~unstable'].fn(
+    const checkForFlagsAndBounds = tgpu.fn(
       [d.u32, d.u32],
       d.bool,
     )((x, y) => {
@@ -202,7 +188,7 @@ export default function () {
       return false;
     });
 
-    const decideWaterLevel = tgpu['~unstable'].fn([d.u32, d.u32])((x, y) => {
+    const decideWaterLevel = tgpu.fn([d.u32, d.u32])((x, y) => {
       if (checkForFlagsAndBounds(x, y)) {
         return;
       }
@@ -343,13 +329,10 @@ export default function () {
     });
 
     const vertexInstanceLayout = tgpu.vertexLayout(
-      (n: number) => d.arrayOf(d.u32, n),
+      d.arrayOf(d.u32),
       'instance',
     );
-    const vertexLayout = tgpu.vertexLayout(
-      (n: number) => d.arrayOf(d.vec2f, n),
-      'vertex',
-    );
+    const vertexLayout = tgpu.vertexLayout(d.arrayOf(d.vec2f), 'vertex');
 
     let drawCanvasData = new Uint32Array(options.size * options.size);
 
@@ -430,12 +413,8 @@ export default function () {
         squareData: vertexLayout.attrib,
         currentStateData: vertexInstanceLayout.attrib,
       })
-      .withFragment(fragment, {
-        format: presentationFormat,
-      })
-      .withPrimitive({
-        topology: 'triangle-strip',
-      })
+      .withFragment(fragment, { format: presentationFormat })
+      .withPrimitive({ topology: 'triangle-strip' })
       .createPipeline()
       .with(vertexLayout, squareBuffer)
       .with(vertexInstanceLayout, currentStateBuffer);

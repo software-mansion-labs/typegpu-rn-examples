@@ -285,7 +285,7 @@ export default function () {
       even = !even;
 
       computePipeline
-        .with(computeBindGroupLayout, computeBindGroups[even ? 0 : 1])
+        .with(computeBindGroups[even ? 0 : 1])
         .dispatchWorkgroups(triangleAmount);
 
       renderPipeline
@@ -296,10 +296,8 @@ export default function () {
           storeOp: 'store' as const,
         })
         .with(instanceLayout, trianglePosBuffers[even ? 1 : 0])
-        .with(renderBindGroupLayout, renderBindGroups[even ? 1 : 0])
+        .with(renderBindGroups[even ? 1 : 0])
         .draw(3, triangleAmount);
-
-      root['~unstable'].flush();
     }
 
     return frame;

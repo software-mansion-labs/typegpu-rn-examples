@@ -56,39 +56,42 @@ export default function () {
       },
       out: {
         pos: d.builtin.position,
-        cell: d.f32,
+        cell: d.interpolate('flat', d.u32),
         uv: d.vec2f,
       },
     })(({ iid, cell, pos }) => {
       const w = d.u32(size.x);
       const h = d.u32(size.y);
-      const x =
-        ((d.f32((iid % w) + pos.x) / d.f32(w) - 0.5) * 2 * d.f32(w)) /
-        d.f32(std.max(w, h));
-      const y =
-        ((d.f32((iid - (iid % w)) / w + d.f32(pos.y)) / d.f32(h) - 0.5) *
-          2 *
-          d.f32(h)) /
-        d.f32(std.max(w, h));
+
+      const col = iid % w;
+      const row = iid / w;
+
+      const gx = col + pos.x;
+      const gy = row + pos.y;
+
+      const maxWH = d.f32(std.max(w, h));
+      const x = (d.f32(gx) * 2 - d.f32(w)) / maxWH;
+      const y = (d.f32(gy) * 2 - d.f32(h)) / maxWH;
 
       return {
         pos: d.vec4f(x, y, 0, 1),
-        cell: d.f32(cell),
-        uv: d.vec2f((x + 1) / 2, (y + 1) / 2),
+        cell,
+        uv: d.vec2f((x + 1) * 0.5, (y + 1) * 0.5),
       };
     });
 
     const fragmentFn = tgpu['~unstable'].fragmentFn({
       in: {
-        cell: d.f32,
+        cell: d.interpolate('flat', d.u32),
         uv: d.vec2f,
       },
       out: d.vec4f,
     })(({ cell, uv }) => {
-      if (cell === 0.0) {
+      if (cell === d.u32(0)) {
         std.discard();
       }
-      return d.vec4f(uv.x / 1.5, uv.y / 1.5, 1 - uv.x / 1.5, 0.8);
+      const u = uv.div(1.5);
+      return d.vec4f(u.x, u.y, 1 - u.x, 0.8);
     });
 
     const renderPipeline = root['~unstable']
