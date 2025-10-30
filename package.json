@@ -11,13 +11,13 @@
   "dependencies": {
     "@loaders.gl/core": "^4.3.4",
     "@loaders.gl/obj": "^4.3.4",
-    "@typegpu/noise": "^0.7.0",
+    "@typegpu/noise": "^0.8.0",
     "expo": "~54.0.21",
     "react": "19.2.0",
     "react-native": "0.81.5",
     "react-native-wgpu": "^0.3.1",
-    "typegpu": "0.8.0-alpha.2",
-    "unplugin-typegpu": "0.8.0-alpha.2",
+    "typegpu": "^0.8.0",
+    "unplugin-typegpu": "^0.8.0",
     "wgpu-matrix": "^3.4.0"
   },
   "devDependencies": {
