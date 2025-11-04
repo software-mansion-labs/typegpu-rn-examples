@@ -26,9 +26,12 @@ importers:
       react-native:
         specifier: 0.81.5
         version: 0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.2.0)
+      react-native-safe-area-context:
+        specifier: ^5.6.2
+        version: 5.6.2(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.2.0))(react@19.2.0)
       react-native-wgpu:
-        specifier: ^0.3.1
-        version: 0.3.1(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.2.0))(react@19.2.0)
+        specifier: ^0.4.0
+        version: 0.4.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.2.0))(react@19.2.0)
       typegpu:
         specifier: ^0.8.0
         version: 0.8.0
@@ -2336,8 +2339,14 @@ packages:
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
-  react-native-wgpu@0.3.1:
-    resolution: {integrity: sha512-uuEGr/lzKpqpFnxYIEPf+TN6AYVyuhdNWd3OvTIH88VzwBlq54KIbAgHO70GXS1JD580MdG/Y1JnpuYw7tuk9g==}
+  react-native-safe-area-context@5.6.2:
+    resolution: {integrity: sha512-4XGqMNj5qjUTYywJqpdWZ9IG8jgkS3h06sfVjfw5yZQZfWnRFXczi0GnYyFyCc2EBps/qFmoCH8fez//WumdVg==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+
+  react-native-wgpu@0.4.0:
+    resolution: {integrity: sha512-XNz6XpsfLLja54qJvHcr2MjEMSE0+pqxenadHyOuMxn+zVPZx4KuKRqEggivERPqZQCx8j9usFhrNr1vdMLUxA==}
     peerDependencies:
       react: '*'
       react-native: '*'
@@ -5780,7 +5789,12 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  react-native-wgpu@0.3.1(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.2.0))(react@19.2.0):
+  react-native-safe-area-context@5.6.2(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.2.0))(react@19.2.0):
+    dependencies:
+      react: 19.2.0
+      react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.2.0)
+
+  react-native-wgpu@0.4.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.2.0))(react@19.2.0):
     dependencies:
       react: 19.2.0
       react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.2.0)
