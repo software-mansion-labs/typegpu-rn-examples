@@ -18,7 +18,7 @@ export const ModelData = d.struct({
   applySeaDesaturation: d.u32, // bool
 });
 
-export const ModelDataArray = (n: number) => d.arrayOf(ModelData, n);
+export const ModelDataArray = d.arrayOf(ModelData);
 
 export const ModelVertexInput = {
   modelPosition: d.vec3f,
@@ -43,8 +43,8 @@ export const MouseRay = d.struct({
 
 // layouts
 
-export const modelVertexLayout = tgpu.vertexLayout((n: number) =>
-  d.arrayOf(d.struct(ModelVertexInput), n),
+export const modelVertexLayout = tgpu.vertexLayout(
+  d.arrayOf(d.struct(ModelVertexInput)),
 );
 
 export const renderInstanceLayout = tgpu.vertexLayout(
