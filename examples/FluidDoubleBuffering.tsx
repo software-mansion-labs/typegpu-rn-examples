@@ -136,15 +136,15 @@ export default function () {
           continue;
         }
 
-        const min_x = std.max(0, d.i32(obs.center.x) - d.i32(obs.size.x) / 2);
+        const min_x = std.max(0, d.i32(obs.center.x) - d.i32(obs.size.x / 2));
         const max_x = std.min(
           d.i32(gridSize),
-          d.i32(obs.center.x) + d.i32(obs.size.x) / 2,
+          d.i32(obs.center.x) + d.i32(obs.size.x / 2),
         );
-        const min_y = std.max(0, d.i32(obs.center.y) - d.i32(obs.size.y) / 2);
+        const min_y = std.max(0, d.i32(obs.center.y) - d.i32(obs.size.y / 2));
         const max_y = std.min(
           d.i32(gridSize),
-          d.i32(obs.center.y) + d.i32(obs.size.y) / 2,
+          d.i32(obs.center.y) + d.i32(obs.size.y / 2),
         );
 
         if (x >= min_x && x <= max_x && y >= min_y && y <= max_y) {
@@ -155,7 +155,7 @@ export default function () {
       return false;
     });
 
-    const isValidFlowOut = tgpu['~unstable'].fn(
+    const isValidFlowOut = tgpu.fn(
       [d.i32, d.i32],
       d.bool,
     )((x, y) => {
@@ -170,7 +170,7 @@ export default function () {
       return true;
     });
 
-    const computeVelocity = tgpu['~unstable'].fn(
+    const computeVelocity = tgpu.fn(
       [d.i32, d.i32],
       d.vec2f,
     )((x, y) => {
@@ -198,12 +198,12 @@ export default function () {
 
         if (cost === leastCost) {
           // another valid direction
-          dirChoices[dirChoiceCount] = d.vec2f(offset.x, offset.y);
+          dirChoices[dirChoiceCount] = d.vec2f(offset);
           dirChoiceCount += 1;
         } else if (cost < leastCost) {
           // new best choice
           leastCost = cost;
-          dirChoices[0] = d.vec2f(offset.x, offset.y);
+          dirChoices[0] = d.vec2f(offset);
           dirChoiceCount = d.u32(1);
         }
       }
@@ -227,8 +227,8 @@ export default function () {
         value = d.vec4f(0, 0, 0, 0);
       } else {
         // Ocean
-        if (y < d.i32(gridSizeUniform.value) / 2) {
-          const depth = 1 - d.f32(y) / (d.f32(gridSizeUniform.value) / 2);
+        if (y < d.i32(gridSizeUniform.value / 2)) {
+          const depth = 1 - d.f32(y) / d.f32(gridSizeUniform.value / 2);
           value = d.vec4f(0, 0, 10 + depth * 10, 0);
         }
       }
@@ -252,32 +252,32 @@ export default function () {
           d.vec2i(d.i32(obs.center.x), d.i32(obs.center.y)),
         );
 
-        const min_x = std.max(0, d.i32(obs.center.x) - d.i32(obs.size.x) / 2);
+        const min_x = std.max(0, d.i32(obs.center.x) - d.i32(obs.size.x / 2));
         const max_x = std.min(
           d.i32(gridSize),
-          d.i32(obs.center.x) + d.i32(obs.size.x) / 2,
+          d.i32(obs.center.x) + d.i32(obs.size.x / 2),
         );
-        const min_y = std.max(0, d.i32(obs.center.y) - d.i32(obs.size.y) / 2);
+        const min_y = std.max(0, d.i32(obs.center.y) - d.i32(obs.size.y / 2));
         const max_y = std.min(
           d.i32(gridSize),
-          d.i32(obs.center.y) + d.i32(obs.size.y) / 2,
+          d.i32(obs.center.y) + d.i32(obs.size.y / 2),
         );
 
         const nextMinX = std.max(
           0,
-          d.i32(nextObs.center.x) - d.i32(obs.size.x) / 2,
+          d.i32(nextObs.center.x) - d.i32(obs.size.x / 2),
         );
         const nextMaxX = std.min(
           d.i32(gridSize),
-          d.i32(nextObs.center.x) + d.i32(obs.size.x) / 2,
+          d.i32(nextObs.center.x) + d.i32(obs.size.x / 2),
         );
         const nextMinY = std.max(
           0,
-          d.i32(nextObs.center.y) - d.i32(obs.size.y) / 2,
+          d.i32(nextObs.center.y) - d.i32(obs.size.y / 2),
         );
         const nextMaxY = std.min(
           d.i32(gridSize),
-          d.i32(nextObs.center.y) + d.i32(obs.size.y) / 2,
+          d.i32(nextObs.center.y) + d.i32(obs.size.y / 2),
         );
 
         // does it move right
@@ -404,7 +404,7 @@ export default function () {
       const y = d.i32(input.gid.y);
       const index = coordsToIndex(x, y);
 
-      randf.seed2(d.vec2f(index).mul(timeUniform.value));
+      randf.seed2(d.vec2f(d.f32(index)).mul(timeUniform.value));
 
       const next = getCell(x, y);
       const nextVelocity = computeVelocity(x, y);

@@ -119,7 +119,7 @@ export default function () {
         totalMass >= MAX_WATER_LEVEL_UNPRESSURIZED.value * 2 &&
         upper > lower
       ) {
-        return totalMass / 2 + MAX_PRESSURE.value;
+        return d.u32(totalMass / 2) + MAX_PRESSURE.value;
       }
       return MAX_WATER_LEVEL_UNPRESSURIZED.value;
     });
@@ -222,7 +222,7 @@ export default function () {
         if (flowRaw > 0) {
           const change = std.max(
             std.min(4, remainingWater),
-            d.u32(flowRaw) / 4,
+            d.u32(flowRaw / 4),
           );
           const flow = std.min(change, viscosityUniform.value);
           subtractFromCell(x, y, flow);
@@ -241,7 +241,7 @@ export default function () {
         if (flowRaw > 0) {
           const change = std.max(
             std.min(4, remainingWater),
-            d.u32(flowRaw) / 4,
+            d.u32(flowRaw / 4),
           );
           const flow = std.min(change, viscosityUniform.value);
           subtractFromCell(x, y, flow);
@@ -284,7 +284,7 @@ export default function () {
           d.f32(w)) /
         d.f32(std.max(w, h));
       const y =
-        ((d.f32((input.idx - (input.idx % w)) / w + d.u32(input.squareData.y)) /
+        ((d.f32((input.idx - (input.idx % w)) / w + input.squareData.y) /
           d.f32(h) -
           0.5) *
           2 *

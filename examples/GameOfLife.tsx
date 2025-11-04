@@ -64,7 +64,7 @@ export default function () {
       const h = d.u32(size.y);
 
       const col = iid % w;
-      const row = iid / w;
+      const row = d.u32(iid / w);
 
       const gx = col + pos.x;
       const gy = row + pos.y;
