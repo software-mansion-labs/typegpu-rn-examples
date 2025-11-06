@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
-import { PixelRatio } from 'react-native';
-import { type NativeCanvas, useCanvasRef, useDevice } from 'react-native-wgpu';
+import { useEffect, useRef } from "react";
+import { PixelRatio } from "react-native";
+import { type NativeCanvas, useCanvasRef, useDevice } from "react-native-wgpu";
 
 interface SceneProps {
   context: GPUCanvasContext;
@@ -24,9 +24,9 @@ export const useWebGPU = (scene: Scene) => {
         return;
       }
 
-      const context = ref.getContext('webgpu');
+      const context = ref.getContext("webgpu");
       if (!context) {
-        throw new Error('Failed to get WebGPU context from canvas.');
+        throw new Error("Failed to get WebGPU context from canvas.");
       }
 
       const canvas = context.canvas as HTMLCanvasElement;
@@ -36,7 +36,7 @@ export const useWebGPU = (scene: Scene) => {
       context.configure({
         device,
         format: presentationFormat,
-        alphaMode: 'premultiplied',
+        alphaMode: "premultiplied",
       });
 
       const sceneProps: SceneProps = {
@@ -48,7 +48,9 @@ export const useWebGPU = (scene: Scene) => {
       };
 
       const r: RenderScene | Promise<RenderScene> = (
-        scene instanceof Promise ? await scene(sceneProps) : scene(sceneProps)
+        scene instanceof Promise
+          ? await withValidate(device, scene)(sceneProps)
+          : withValidate(device, scene)(sceneProps)
       ) as RenderScene | Promise<RenderScene>;
 
       let renderScene: RenderScene;
@@ -57,7 +59,7 @@ export const useWebGPU = (scene: Scene) => {
       } else {
         renderScene = r as RenderScene;
       }
-      if (typeof renderScene === 'function') {
+      if (typeof renderScene === "function") {
         const render = () => {
           const timestamp = Date.now();
           renderScene(timestamp);
@@ -81,19 +83,30 @@ export const useWebGPU = (scene: Scene) => {
  * Dev utility to wrap GPU calls with error validation.
  * If not used the errors will not appear in console (unlike in web).
  */
-export function withValidate(device: GPUDevice, fn: () => void) {
-  const scopes: GPUErrorFilter[] = ['validation', 'out-of-memory', 'internal'];
-  for (const scope of scopes) {
-    device.pushErrorScope(scope);
-  }
+export function withValidate<T extends unknown[], R>(
+  device: GPUDevice,
+  fn: (...args: T) => R,
+) {
+  return (...args: T): R => {
+    const scopes: GPUErrorFilter[] = [
+      "validation",
+      "out-of-memory",
+      "internal",
+    ];
+    for (const scope of scopes) {
+      device.pushErrorScope(scope);
+    }
 
-  fn();
+    const result = fn(...args);
 
-  for (const scope of scopes.reverse()) {
-    device.popErrorScope().then((error) => {
-      if (error) {
-        console.error(`GPU Error [${scope}]:`, error.message);
-      }
-    });
-  }
+    for (const scope of scopes.reverse()) {
+      device.popErrorScope().then((error) => {
+        if (error) {
+          console.error(`GPU Error [${scope}]:`, error.message);
+        }
+      });
+    }
+
+    return result;
+  };
 }
