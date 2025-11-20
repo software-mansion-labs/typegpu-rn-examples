@@ -561,16 +561,13 @@ export default function () {
       return {
         init() {
           initWorldPipeline.dispatchWorkgroups(gridSize, gridSize);
-          root['~unstable'].flush();
         },
 
         applyMovedObstacles(bufferData: d.Infer<BoxObstacle>[]) {
           obstaclesBuffer.write(bufferData);
           moveObstaclesPipeline.dispatchWorkgroups(1);
-          root['~unstable'].flush();
 
           prevObstaclesBuffer.write(bufferData);
-          root['~unstable'].flush();
         },
 
         compute() {
@@ -636,7 +633,6 @@ export default function () {
       primary = primary === even ? odd : even;
       primary.compute();
       primary.render();
-      root['~unstable'].flush();
     };
 
     return frame;

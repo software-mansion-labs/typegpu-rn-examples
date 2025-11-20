@@ -48,7 +48,9 @@ export const useWebGPU = (scene: Scene) => {
       };
 
       const r: RenderScene | Promise<RenderScene> = (
-        scene instanceof Promise ? await scene(sceneProps) : scene(sceneProps)
+        scene instanceof Promise
+          ? await withValidate(device, scene)(sceneProps)
+          : withValidate(device, scene)(sceneProps)
       ) as RenderScene | Promise<RenderScene>;
 
       let renderScene: RenderScene;
@@ -81,19 +83,30 @@ export const useWebGPU = (scene: Scene) => {
  * Dev utility to wrap GPU calls with error validation.
  * If not used the errors will not appear in console (unlike in web).
  */
-export function withValidate(device: GPUDevice, fn: () => void) {
-  const scopes: GPUErrorFilter[] = ['validation', 'out-of-memory', 'internal'];
-  for (const scope of scopes) {
-    device.pushErrorScope(scope);
-  }
+export function withValidate<T extends unknown[], R>(
+  device: GPUDevice,
+  fn: (...args: T) => R,
+) {
+  return (...args: T): R => {
+    const scopes: GPUErrorFilter[] = [
+      'validation',
+      'out-of-memory',
+      'internal',
+    ];
+    for (const scope of scopes) {
+      device.pushErrorScope(scope);
+    }
 
-  fn();
+    const result = fn(...args);
 
-  for (const scope of scopes.reverse()) {
-    device.popErrorScope().then((error) => {
-      if (error) {
-        console.error(`GPU Error [${scope}]:`, error.message);
-      }
-    });
-  }
+    for (const scope of scopes.reverse()) {
+      device.popErrorScope().then((error) => {
+        if (error) {
+          console.error(`GPU Error [${scope}]:`, error.message);
+        }
+      });
+    }
+
+    return result;
+  };
 }

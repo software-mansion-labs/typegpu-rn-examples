@@ -48,12 +48,7 @@ export async function loadModel(
     })
     .$usage('sampled', 'render');
 
-  // TODO: Move to texture.write() method
-  root.device.queue.copyExternalImageToTexture(
-    { source: imageBitmap },
-    { texture: root.unwrap(texture) },
-    [imageBitmap.width, imageBitmap.height],
-  );
+  texture.write(imageBitmap);
 
   return {
     vertexBuffer: vertexBuffer,
