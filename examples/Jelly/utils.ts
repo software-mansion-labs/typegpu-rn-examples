@@ -1,7 +1,7 @@
+import type { TgpuRoot } from 'typegpu';
 import * as d from 'typegpu/data';
 import * as std from 'typegpu/std';
 import { BoxIntersection } from './dataTypes.ts';
-import type { TgpuRoot } from 'typegpu';
 
 export const fresnelSchlick = (
   cosTheta: number,
@@ -46,10 +46,12 @@ export const intersectBox = (
 
 export function createTextures(root: TgpuRoot, width: number, height: number) {
   return [0, 1].map(() => {
-    const texture = root['~unstable'].createTexture({
-      size: [width, height],
-      format: 'rgba8unorm',
-    }).$usage('storage', 'sampled', 'render');
+    const texture = root['~unstable']
+      .createTexture({
+        size: [width, height],
+        format: 'rgba8unorm',
+      })
+      .$usage('storage', 'sampled', 'render');
 
     return {
       write: texture.createView(d.textureStorage2d('rgba8unorm')),
@@ -63,10 +65,12 @@ export function createBackgroundTexture(
   width: number,
   height: number,
 ) {
-  const texture = root['~unstable'].createTexture({
-    size: [width, height],
-    format: 'rgba16float',
-  }).$usage('sampled', 'render');
+  const texture = root['~unstable']
+    .createTexture({
+      size: [width, height],
+      format: 'rgba16float',
+    })
+    .$usage('sampled', 'render');
 
   return {
     sampled: texture.createView(),

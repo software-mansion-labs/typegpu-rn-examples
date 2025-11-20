@@ -1,4 +1,4 @@
-import { sdBezier } from "@typegpu/sdf";
+import { sdBezier } from '@typegpu/sdf';
 import type {
   SampledFlag,
   StorageFlag,
@@ -7,9 +7,9 @@ import type {
   TgpuRoot,
   TgpuTexture,
   TgpuUniform,
-} from "typegpu";
-import * as d from "typegpu/data";
-import * as std from "typegpu/std";
+} from 'typegpu';
+import * as d from 'typegpu/data';
+import * as std from 'typegpu/std';
 
 const BEZIER_TEXTURE_SIZE = [256, 128] as const;
 
@@ -29,7 +29,7 @@ export class Slider {
   normalsBuffer: TgpuBuffer<d.WgslArray<d.Vec2f>> & StorageFlag;
   bezierTexture: TgpuTexture<{
     size: typeof BEZIER_TEXTURE_SIZE;
-    format: "rgba16float";
+    format: 'rgba16float';
   }> &
     SampledFlag &
     StorageFlag;
@@ -99,36 +99,36 @@ export class Slider {
         d.arrayOf(d.vec2f, this.n),
         this.#pos.map((p) => d.vec2f(p[0], p[1])),
       )
-      .$usage("storage");
+      .$usage('storage');
 
     this.controlPointsBuffer = this.#root
       .createBuffer(
         d.arrayOf(d.vec2f, this.n - 1),
         this.#controlPoints.map((p) => d.vec2f(p[0], p[1])),
       )
-      .$usage("storage");
+      .$usage('storage');
 
     this.normalsBuffer = this.#root
       .createBuffer(
         d.arrayOf(d.vec2f, this.n),
         this.#normals.map((p) => d.vec2f(p[0], p[1])),
       )
-      .$usage("storage");
+      .$usage('storage');
 
-    this.bezierTexture = this.#root["~unstable"]
+    this.bezierTexture = this.#root['~unstable']
       .createTexture({
         size: BEZIER_TEXTURE_SIZE,
-        format: "rgba16float",
+        format: 'rgba16float',
       })
-      .$usage("sampled", "storage", "render");
+      .$usage('sampled', 'storage', 'render');
 
     this.endCapUniform = this.#root.createUniform(d.vec4f);
 
     const bezierWriteView = this.bezierTexture.createView(
-      d.textureStorage2d("rgba16float", "write-only"),
+      d.textureStorage2d('rgba16float', 'write-only'),
     );
-    const pointsView = this.pointsBuffer.as("readonly");
-    const controlPointsView = this.controlPointsBuffer.as("readonly");
+    const pointsView = this.pointsBuffer.as('readonly');
+    const controlPointsView = this.controlPointsBuffer.as('readonly');
 
     const padding = 0.01;
     const left = start.x - this.totalLength * padding;
@@ -139,9 +139,9 @@ export class Slider {
     this.bbox = [top, right, bottom, left];
 
     this.#computeBezierPipeline = this.#root[
-      "~unstable"
+      '~unstable'
     ].createGuardedComputePipeline((x, y) => {
-      "use gpu";
+      'use gpu';
       const size = std.textureDimensions(bezierWriteView.$);
       const pixelUV = d.vec2f(x, y).add(0.5).div(d.vec2f(size));
 

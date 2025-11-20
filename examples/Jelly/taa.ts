@@ -1,7 +1,7 @@
+import type { TgpuComputePipeline, TgpuRoot, TgpuTextureView } from 'typegpu';
 import tgpu from 'typegpu';
 import * as d from 'typegpu/data';
 import * as std from 'typegpu/std';
-import type { TgpuComputePipeline, TgpuRoot, TgpuTextureView } from 'typegpu';
 import { taaResolveLayout } from './dataTypes.ts';
 
 export const taaResolveFn = tgpu['~unstable'].computeFn({
@@ -63,21 +63,25 @@ export const taaResolveFn = tgpu['~unstable'].computeFn({
     textRegionMinX + borderSize,
     uv.x,
   );
-  const fadeOutX = d.f32(1.0) - (std.smoothstep(
-    textRegionMaxX - borderSize,
-    textRegionMaxX + borderSize,
-    uv.x,
-  ));
+  const fadeOutX =
+    d.f32(1.0) -
+    std.smoothstep(
+      textRegionMaxX - borderSize,
+      textRegionMaxX + borderSize,
+      uv.x,
+    );
   const fadeInY = std.smoothstep(
     textRegionMinY - borderSize,
     textRegionMinY + borderSize,
     uv.y,
   );
-  const fadeOutY = d.f32(1.0) - (std.smoothstep(
-    textRegionMaxY - borderSize,
-    textRegionMaxY + borderSize,
-    uv.y,
-  ));
+  const fadeOutY =
+    d.f32(1.0) -
+    std.smoothstep(
+      textRegionMaxY - borderSize,
+      textRegionMaxY + borderSize,
+      uv.y,
+    );
 
   const inTextRegion = fadeInX * fadeOutX * fadeInY * fadeOutY;
   const blendFactor = std.mix(d.f32(0.9), d.f32(0.7), inTextRegion);
@@ -100,10 +104,12 @@ export function createTaaTextures(
   height: number,
 ) {
   return [0, 1].map(() => {
-    const texture = root['~unstable'].createTexture({
-      size: [width, height],
-      format: 'rgba8unorm',
-    }).$usage('storage', 'sampled');
+    const texture = root['~unstable']
+      .createTexture({
+        size: [width, height],
+        format: 'rgba8unorm',
+      })
+      .$usage('storage', 'sampled');
 
     return {
       write: texture.createView(d.textureStorage2d('rgba8unorm')),
@@ -138,18 +144,21 @@ export class TAAResolver {
   ) {
     const previousFrame = 1 - currentFrame;
 
-    this.#pipeline.with(
-      this.#root.createBindGroup(taaResolveLayout, {
-        currentTexture,
-        historyTexture: frameCount === 1
-          ? currentTexture
-          : this.#textures[previousFrame].sampled,
-        outputTexture: this.#textures[currentFrame].write,
-      }),
-    ).dispatchWorkgroups(
-      Math.ceil(this.#width / 16),
-      Math.ceil(this.#height / 16),
-    );
+    this.#pipeline
+      .with(
+        this.#root.createBindGroup(taaResolveLayout, {
+          currentTexture,
+          historyTexture:
+            frameCount === 1
+              ? currentTexture
+              : this.#textures[previousFrame].sampled,
+          outputTexture: this.#textures[currentFrame].write,
+        }),
+      )
+      .dispatchWorkgroups(
+        Math.ceil(this.#width / 16),
+        Math.ceil(this.#height / 16),
+      );
 
     return this.#textures[currentFrame].sampled;
   }

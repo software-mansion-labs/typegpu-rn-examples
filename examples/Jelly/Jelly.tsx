@@ -1,14 +1,14 @@
-import { randf } from "@typegpu/noise";
-import * as sdf from "@typegpu/sdf";
-import { PixelRatio } from "react-native";
-import type { SharedValue } from "react-native-reanimated";
-import { Canvas } from "react-native-wgpu";
-import tgpu from "typegpu";
-import { fullScreenTriangle } from "typegpu/common";
-import * as d from "typegpu/data";
-import * as std from "typegpu/std";
-import { useWebGPU } from "../../useWebGPU.ts";
-import { CameraController } from "./camera.ts";
+import { randf } from '@typegpu/noise';
+import * as sdf from '@typegpu/sdf';
+import { PixelRatio } from 'react-native';
+import type { SharedValue } from 'react-native-reanimated';
+import { Canvas } from 'react-native-wgpu';
+import tgpu from 'typegpu';
+import { fullScreenTriangle } from 'typegpu/common';
+import * as d from 'typegpu/data';
+import * as std from 'typegpu/std';
+import { useWebGPU } from '../../useWebGPU.ts';
+import { CameraController } from './camera.ts';
 import {
   AMBIENT_COLOR,
   AMBIENT_INTENSITY,
@@ -26,7 +26,7 @@ import {
   SPECULAR_INTENSITY,
   SPECULAR_POWER,
   SURF_DIST,
-} from "./constants.ts";
+} from './constants.ts';
 import {
   DirectionalLight,
   HitInfo,
@@ -36,18 +36,18 @@ import {
   rayMarchLayout,
   SdfBbox,
   sampleLayout,
-} from "./dataTypes.ts";
-import { EventHandler } from "./eventHandler.ts";
-import { NumberProvider } from "./numbers.ts";
-import { Slider } from "./slider.ts";
-import { TAAResolver } from "./taa.ts";
+} from './dataTypes.ts';
+import { EventHandler } from './eventHandler.ts';
+import { NumberProvider } from './numbers.ts';
+import { Slider } from './slider.ts';
+import { TAAResolver } from './taa.ts';
 import {
   beerLambert,
   createBackgroundTexture,
   createTextures,
   fresnelSchlick,
   intersectBox,
-} from "./utils.ts";
+} from './utils.ts';
 
 interface JellyProps {
   isDragging?: SharedValue<boolean>;
@@ -85,9 +85,9 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     const textures = createTextures(root, width, height);
     const backgroundTexture = createBackgroundTexture(root, width, height);
 
-    const filteringSampler = root["~unstable"].createSampler({
-      magFilter: "linear",
-      minFilter: "linear",
+    const filteringSampler = root['~unstable'].createSampler({
+      magFilter: 'linear',
+      minFilter: 'linear',
     });
 
     const camera = new CameraController(
@@ -115,7 +115,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     const blurEnabledUniform = root.createUniform(d.u32);
 
     const getRay = (ndc: d.v2f) => {
-      "use gpu";
+      'use gpu';
       const clipPos = d.vec4f(ndc.x, ndc.y, -1.0, 1.0);
 
       const invView = cameraUniform.$.viewInv;
@@ -136,7 +136,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const getSliderBbox = () => {
-      "use gpu";
+      'use gpu';
       return SdfBbox({
         left: d.f32(bezierBbox[3]),
         right: d.f32(bezierBbox[1]),
@@ -146,7 +146,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const sdInflatedPolyline2D = (p: d.v2f) => {
-      "use gpu";
+      'use gpu';
       const bbox = getSliderBbox();
 
       const uv = d.vec2f(
@@ -173,7 +173,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const cap3D = (position: d.v3f) => {
-      "use gpu";
+      'use gpu';
       const endCap = slider.endCapUniform.$;
       const secondLastPoint = d.vec2f(endCap.x, endCap.y);
       const lastPoint = d.vec2f(endCap.z, endCap.w);
@@ -197,7 +197,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const sliderSdf3D = (position: d.v3f) => {
-      "use gpu";
+      'use gpu';
       const poly2D = sdInflatedPolyline2D(position.xy);
 
       let finalDist = d.f32(0.0);
@@ -223,7 +223,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const rectangleCutoutDist = (position: d.v2f) => {
-      "use gpu";
+      'use gpu';
       const groundRoundness = GroundParams.groundRoundness;
 
       return sdf.sdRoundedBox2d(
@@ -234,7 +234,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const getMainSceneDist = (position: d.v3f) => {
-      "use gpu";
+      'use gpu';
       const groundThickness = GroundParams.groundThickness;
       const groundRoundness = GroundParams.groundRoundness;
 
@@ -249,7 +249,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const sliderApproxDist = (position: d.v3f) => {
-      "use gpu";
+      'use gpu';
       const bbox = getSliderBbox();
 
       const p = position.xy;
@@ -271,7 +271,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const getSceneDist = (position: d.v3f) => {
-      "use gpu";
+      'use gpu';
       const mainScene = getMainSceneDist(position);
       const poly3D = sliderSdf3D(position);
 
@@ -289,7 +289,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const getSceneDistForAO = (position: d.v3f) => {
-      "use gpu";
+      'use gpu';
       const mainScene = getMainSceneDist(position);
       const sliderApprox = sliderApproxDist(position);
       return std.min(mainScene, sliderApprox);
@@ -301,7 +301,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
       [d.vec3f, d.f32],
       d.vec3f,
     )((position, epsilon) => {
-      "use gpu";
+      'use gpu';
       const k = d.vec3f(1, -1, 0);
 
       const offset1 = k.xyy.mul(epsilon);
@@ -323,12 +323,12 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     const getNormalMainSdf = getNormalFromSdf.with(sdfSlot, getMainSceneDist);
 
     const getNormalCap = (pos: d.v3f) => {
-      "use gpu";
+      'use gpu';
       return getNormalCapSdf(pos, 0.01);
     };
 
     const getNormalMain = (position: d.v3f) => {
-      "use gpu";
+      'use gpu';
       if (std.abs(position.z) > 0.22 || std.abs(position.x) > 1.02) {
         return d.vec3f(0, 1, 0);
       }
@@ -339,7 +339,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
       position: d.v3f,
       hitInfo: d.Infer<typeof HitInfo>,
     ) => {
-      "use gpu";
+      'use gpu';
       const poly2D = sdInflatedPolyline2D(position.xy);
       const gradient2D = poly2D.normal;
 
@@ -385,7 +385,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const getNormal = (position: d.v3f, hitInfo: d.Infer<typeof HitInfo>) => {
-      "use gpu";
+      'use gpu';
       if (hitInfo.objectType === ObjectType.SLIDER && hitInfo.t < 0.96) {
         return getSliderNormal(position, hitInfo);
       }
@@ -398,12 +398,12 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const sqLength = (a: d.v3f) => {
-      "use gpu";
+      'use gpu';
       return std.dot(a, a);
     };
 
     const getFakeShadow = (position: d.v3f, lightDir: d.v3f): d.v3f => {
-      "use gpu";
+      'use gpu';
       const jellyColor = jellyColorUniform.$;
       const endCapX = slider.endCapUniform.$.x;
 
@@ -469,7 +469,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const calculateAO = (position: d.v3f, normal: d.v3f) => {
-      "use gpu";
+      'use gpu';
       let totalOcclusion = d.f32(0.0);
       let sampleWeight = d.f32(1.0);
       const stepDistance = AO_RADIUS / AO_STEPS;
@@ -498,7 +498,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
       normal: d.v3f,
       rayOrigin: d.v3f,
     ) => {
-      "use gpu";
+      'use gpu';
       const lightDir = std.neg(lightUniform.$.direction);
 
       const fakeShadow = getFakeShadow(hitPosition, lightDir);
@@ -528,14 +528,14 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const applyAO = (litColor: d.v3f, hitPosition: d.v3f, normal: d.v3f) => {
-      "use gpu";
+      'use gpu';
       const ao = calculateAO(hitPosition, normal);
       const finalColor = litColor.mul(ao);
       return d.vec4f(finalColor, 1.0);
     };
 
     const rayMarchNoJelly = (rayOrigin: d.v3f, rayDirection: d.v3f) => {
-      "use gpu";
+      'use gpu';
       let distanceFromOrigin = d.f32();
       let hit = d.f32();
 
@@ -564,7 +564,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
       center: d.v3f,
       percentage: number,
     ) => {
-      "use gpu";
+      'use gpu';
 
       const textWidth = 0.38;
       const textHeight = 0.33;
@@ -601,7 +601,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
       backgroundHitDist: number,
       offset: number,
     ) => {
-      "use gpu";
+      'use gpu';
       const hitPosition = rayOrigin.add(rayDirection.mul(backgroundHitDist));
 
       const percentageSample = renderPercentageOnGround(
@@ -703,7 +703,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     };
 
     const rayMarch = (rayOrigin: d.v3f, rayDirection: d.v3f, uv: d.v2f) => {
-      "use gpu";
+      'use gpu';
       let totalSteps = d.u32();
 
       let backgroundDist = d.f32();
@@ -812,7 +812,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
       return background;
     };
 
-    const raymarchFn = tgpu["~unstable"].fragmentFn({
+    const raymarchFn = tgpu['~unstable'].fragmentFn({
       in: {
         uv: d.vec2f,
       },
@@ -827,7 +827,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
       return d.vec4f(std.tanh(color.xyz.mul(1.3)), 1);
     });
 
-    const fragmentMain = tgpu["~unstable"].fragmentFn({
+    const fragmentMain = tgpu['~unstable'].fragmentFn({
       in: { uv: d.vec2f },
       out: d.vec4f,
     })((input) => {
@@ -838,12 +838,12 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
       );
     });
 
-    const rayMarchPipeline = root["~unstable"]
+    const rayMarchPipeline = root['~unstable']
       .withVertex(fullScreenTriangle, {})
-      .withFragment(raymarchFn, { format: "rgba8unorm" })
+      .withFragment(raymarchFn, { format: 'rgba8unorm' })
       .createPipeline();
 
-    const renderPipeline = root["~unstable"]
+    const renderPipeline = root['~unstable']
       .withVertex(fullScreenTriangle, {})
       .withFragment(fragmentMain, { format: presentationFormat })
       .createPipeline();
@@ -892,8 +892,8 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
       rayMarchPipeline
         .withColorAttachment({
           view: root.unwrap(textures[currentFrame].sampled),
-          loadOp: "clear",
-          storeOp: "store",
+          loadOp: 'clear',
+          storeOp: 'store',
         })
         .draw(3);
 
@@ -906,8 +906,8 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
       renderPipeline
         .withColorAttachment({
           view: context.getCurrentTexture().createView(),
-          loadOp: "clear",
-          storeOp: "store",
+          loadOp: 'clear',
+          storeOp: 'store',
         })
         .with(bindGroups.render[currentFrame])
         .draw(3);
@@ -920,7 +920,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     <Canvas
       ref={ref}
       style={{
-        width: "100%",
+        width: '100%',
         aspectRatio: 1,
       }}
       transparent

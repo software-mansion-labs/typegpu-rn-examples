@@ -39,8 +39,8 @@ importers:
         specifier: ^5.6.2
         version: 5.6.2(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
       react-native-wgpu:
-        specifier: ^0.4.0
-        version: 0.4.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
+        specifier: ^0.4.1
+        version: 0.4.1(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
       react-native-worklets:
         specifier: ^0.6.1
         version: 0.6.1(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
@@ -2401,8 +2401,8 @@ packages:
       react: '*'
       react-native: '*'
 
-  react-native-wgpu@0.4.0:
-    resolution: {integrity: sha512-XNz6XpsfLLja54qJvHcr2MjEMSE0+pqxenadHyOuMxn+zVPZx4KuKRqEggivERPqZQCx8j9usFhrNr1vdMLUxA==}
+  react-native-wgpu@0.4.1:
+    resolution: {integrity: sha512-jKkFGF8VMrvLo54djDRSeUOL0l5ezYC9Mxnn1ym1bFCuMDpVYoIj10Zm2EJA81Jw2uIyfpINHS8rqOXO+RSBuQ==}
     peerDependencies:
       react: '*'
       react-native: '*'
@@ -5905,7 +5905,7 @@ snapshots:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.1.0)
 
-  react-native-wgpu@0.4.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0):
+  react-native-wgpu@0.4.1(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.2.2)(react@19.1.0)

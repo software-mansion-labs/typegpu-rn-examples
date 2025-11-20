@@ -3,7 +3,7 @@ import tgpu from 'typegpu';
 import * as d from 'typegpu/data';
 import * as std from 'typegpu/std';
 
-import { useWebGPU, withValidate } from '../useWebGPU.ts';
+import { useWebGPU } from '../useWebGPU.ts';
 
 export default function () {
   const ref = useWebGPU(({ context, device, presentationFormat }) => {
@@ -130,20 +130,18 @@ export default function () {
       }
       lastTimestamp = timestamp;
 
-      withValidate(device, () => {
-        computeFn.with(bindGroups[swap]).dispatchThreads(size.x, size.y);
+      computeFn.with(bindGroups[swap]).dispatchThreads(size.x, size.y);
 
-        renderPipeline
-          .withColorAttachment({
-            view: context.getCurrentTexture().createView(),
-            loadOp: 'clear',
-            storeOp: 'store',
-          })
-          .with(cellsVertexLayout, buffers[1 - swap])
-          //@ts-expect-error
-          .with(squareVertexLayout, squareBuffer)
-          .draw(4, length);
-      });
+      renderPipeline
+        .withColorAttachment({
+          view: context.getCurrentTexture().createView(),
+          loadOp: 'clear',
+          storeOp: 'store',
+        })
+        .with(cellsVertexLayout, buffers[1 - swap])
+        //@ts-expect-error: an array of u32 is compatible with an array of vec2u but it's cursed
+        .with(squareVertexLayout, squareBuffer)
+        .draw(4, length);
 
       swap ^= 1;
     }

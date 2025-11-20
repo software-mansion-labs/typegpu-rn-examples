@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
-import { PixelRatio } from "react-native";
-import { type NativeCanvas, useCanvasRef, useDevice } from "react-native-wgpu";
+import { useEffect, useRef } from 'react';
+import { PixelRatio } from 'react-native';
+import { type NativeCanvas, useCanvasRef, useDevice } from 'react-native-wgpu';
 
 interface SceneProps {
   context: GPUCanvasContext;
@@ -24,9 +24,9 @@ export const useWebGPU = (scene: Scene) => {
         return;
       }
 
-      const context = ref.getContext("webgpu");
+      const context = ref.getContext('webgpu');
       if (!context) {
-        throw new Error("Failed to get WebGPU context from canvas.");
+        throw new Error('Failed to get WebGPU context from canvas.');
       }
 
       const canvas = context.canvas as HTMLCanvasElement;
@@ -36,7 +36,7 @@ export const useWebGPU = (scene: Scene) => {
       context.configure({
         device,
         format: presentationFormat,
-        alphaMode: "premultiplied",
+        alphaMode: 'premultiplied',
       });
 
       const sceneProps: SceneProps = {
@@ -59,7 +59,7 @@ export const useWebGPU = (scene: Scene) => {
       } else {
         renderScene = r as RenderScene;
       }
-      if (typeof renderScene === "function") {
+      if (typeof renderScene === 'function') {
         const render = () => {
           const timestamp = Date.now();
           renderScene(timestamp);
@@ -89,9 +89,9 @@ export function withValidate<T extends unknown[], R>(
 ) {
   return (...args: T): R => {
     const scopes: GPUErrorFilter[] = [
-      "validation",
-      "out-of-memory",
-      "internal",
+      'validation',
+      'out-of-memory',
+      'internal',
     ];
     for (const scope of scopes) {
       device.pushErrorScope(scope);

@@ -1,7 +1,7 @@
-import { Image } from "react-native";
-import type { SampledFlag, StorageFlag, TgpuRoot, TgpuTexture } from "typegpu";
-import * as d from "typegpu/data";
-import * as std from "typegpu/std";
+import { Image } from 'react-native';
+import type { SampledFlag, StorageFlag, TgpuRoot, TgpuTexture } from 'typegpu';
+import * as d from 'typegpu/data';
+import * as std from 'typegpu/std';
 
 const PERCENTAGE_WIDTH = 256 * 2;
 const PERCENTAGE_HEIGHT = 128 * 2;
@@ -15,19 +15,19 @@ export class NumberProvider {
       typeof PERCENTAGE_HEIGHT,
       typeof PERCENTAGE_COUNT,
     ];
-    format: "rgba8unorm";
+    format: 'rgba8unorm';
   }> &
     SampledFlag &
     StorageFlag;
 
   constructor(root: TgpuRoot) {
     this.#root = root;
-    this.digitTextureAtlas = root["~unstable"]
+    this.digitTextureAtlas = root['~unstable']
       .createTexture({
         size: [PERCENTAGE_WIDTH, PERCENTAGE_HEIGHT, PERCENTAGE_COUNT],
-        format: "rgba8unorm",
+        format: 'rgba8unorm',
       })
-      .$usage("sampled", "render", "storage");
+      .$usage('sampled', 'render', 'storage');
   }
 
   async fillAtlas() {
@@ -64,25 +64,25 @@ export class NumberProvider {
       }),
     );
 
-    const tempTexture = this.#root["~unstable"]
+    const tempTexture = this.#root['~unstable']
       .createTexture({
         size: [128, 256, 11],
-        format: "rgba8unorm",
+        format: 'rgba8unorm',
       })
-      .$usage("storage");
+      .$usage('storage');
     const tempTextureStorageView = tempTexture.createView(
-      d.textureStorage2dArray("rgba8unorm", "read-only"),
+      d.textureStorage2dArray('rgba8unorm', 'read-only'),
     );
     tempTexture.write(bitmaps);
 
     const atlasStorageView = this.digitTextureAtlas.createView(
-      d.textureStorage2dArray("rgba8unorm"),
+      d.textureStorage2dArray('rgba8unorm'),
     );
 
     const fillAtlasCompute = this.#root[
-      "~unstable"
+      '~unstable'
     ].createGuardedComputePipeline((x, y, z) => {
-      "use gpu";
+      'use gpu';
       const hasTwoDigits = d.u32(z) >= d.u32(10);
       const hasThreeDigits = d.u32(z) >= d.u32(100);
 

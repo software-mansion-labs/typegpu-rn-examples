@@ -436,8 +436,6 @@ export default function () {
         })
         .draw(4, options.size ** 2);
 
-      root['~unstable'].flush();
-
       currentStateBuffer.copyFrom(nextStateBuffer);
     };
 

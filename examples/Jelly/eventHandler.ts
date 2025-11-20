@@ -1,4 +1,4 @@
-import type { SharedValue } from "react-native-reanimated";
+import type { SharedValue } from 'react-native-reanimated';
 import {
   MOUSE_MAX_X,
   MOUSE_MIN_X,
@@ -8,7 +8,7 @@ import {
   TARGET_MAX,
   TARGET_MIN,
   TARGET_OFFSET,
-} from "./constants.ts";
+} from './constants.ts';
 
 export class EventHandler {
   private mouseX = 1.0;

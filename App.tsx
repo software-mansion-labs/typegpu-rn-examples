@@ -1,25 +1,25 @@
-import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Boids from "./examples/Boids.tsx";
-import Fish from "./examples/Fish/Fish.tsx";
-import FluidDoubleBuffering from "./examples/FluidDoubleBuffering.tsx";
-import FluidWithAtomics from "./examples/FluidWithAtomics.tsx";
-import FunctionVisualizer from "./examples/FunctionVisualizer.tsx";
-import GameOfLife from "./examples/GameOfLife.tsx";
-import Jelly from "./examples/Jelly/Jelly.tsx";
-import Animated, { useSharedValue } from "react-native-reanimated";
+import { useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
-} from "react-native-gesture-handler";
+} from 'react-native-gesture-handler';
+import Animated, { useSharedValue } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Boids from './examples/Boids.tsx';
+import Fish from './examples/Fish/Fish.tsx';
+import FluidDoubleBuffering from './examples/FluidDoubleBuffering.tsx';
+import FluidWithAtomics from './examples/FluidWithAtomics.tsx';
+import FunctionVisualizer from './examples/FunctionVisualizer.tsx';
+import GameOfLife from './examples/GameOfLife.tsx';
+import Jelly from './examples/Jelly/Jelly.tsx';
 
-const examples = ["🐠", "🚰", "🎮", "📈", "🛁", "🐥", "🪼"] as const;
+const examples = ['🐠', '🚰', '🎮', '📈', '🛁', '🐥', '🪼'] as const;
 
 export default function App() {
   const [currentExample, setCurrentExample] =
-    useState<(typeof examples)[number]>("🪼");
+    useState<(typeof examples)[number]>('🪼');
   const isDragging = useSharedValue(false);
   const mousePos = useSharedValue({ x: 0, y: 0 });
   const gesture = Gesture.Pan()
@@ -37,41 +37,41 @@ export default function App() {
     <GestureHandlerRootView>
       <SafeAreaView
         style={{
-          position: "static",
+          position: 'static',
           flex: 1,
-          backgroundColor: "rgb(239 239 249)",
-          alignItems: "center",
-          justifyContent: "center",
+          backgroundColor: 'rgb(239 239 249)',
+          alignItems: 'center',
+          justifyContent: 'center',
           zIndex: 30,
         }}
       >
         <GestureDetector gesture={gesture}>
           <Animated.View
-            style={{ flex: 1, justifyContent: "center", position: "static" }}
+            style={{ flex: 1, justifyContent: 'center', position: 'static' }}
           >
-            {currentExample === "🐥" ? (
+            {currentExample === '🐥' ? (
               <Boids />
-            ) : currentExample === "🛁" ? (
+            ) : currentExample === '🛁' ? (
               <FluidDoubleBuffering />
-            ) : currentExample === "🚰" ? (
+            ) : currentExample === '🚰' ? (
               <FluidWithAtomics />
-            ) : currentExample === "🎮" ? (
+            ) : currentExample === '🎮' ? (
               <GameOfLife />
-            ) : currentExample === "📈" ? (
+            ) : currentExample === '📈' ? (
               <FunctionVisualizer />
-            ) : currentExample === "🐠" ? (
+            ) : currentExample === '🐠' ? (
               <Fish />
-            ) : currentExample === "🪼" ? (
+            ) : currentExample === '🪼' ? (
               <Jelly isDragging={isDragging} mousePos={mousePos} />
             ) : null}
           </Animated.View>
         </GestureDetector>
         <View
           style={{
-            flexDirection: "row",
+            flexDirection: 'row',
             gap: 20,
             paddingVertical: 40,
-            alignItems: "center",
+            alignItems: 'center',
             zIndex: 40,
           }}
         >
