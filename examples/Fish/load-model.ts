@@ -48,7 +48,6 @@ export async function loadModel(
     })
     .$usage('sampled', 'render');
 
-  // TODO: Move to texture.write() method
   texture.write(imageBitmap);
 
   return {
