@@ -50,6 +50,7 @@ export default function App() {
             <Animated.View
               style={{
                 flex: 1,
+                alignItems: 'center',
                 justifyContent: 'center',
                 position: 'static',
                 width: '100%',

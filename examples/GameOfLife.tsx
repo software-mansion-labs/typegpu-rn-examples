@@ -1,3 +1,4 @@
+import { useWindowDimensions } from 'react-native';
 import { Canvas } from 'react-native-wgpu';
 import tgpu from 'typegpu';
 import * as d from 'typegpu/data';
@@ -151,11 +152,14 @@ export default function () {
     };
   });
 
+  const { width, height } = useWindowDimensions();
+
   return (
     <Canvas
       ref={ref}
       style={{
-        width: '100%',
+        width: width > height ? undefined : '100%',
+        height: width > height ? '100%' : undefined,
         aspectRatio: 1,
       }}
       transparent
