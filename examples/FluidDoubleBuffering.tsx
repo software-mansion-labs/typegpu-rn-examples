@@ -1,4 +1,5 @@
 import { randf } from '@typegpu/noise';
+import { useWindowDimensions } from 'react-native';
 import { Canvas } from 'react-native-wgpu';
 import tgpu, { type TgpuBufferMutable, type TgpuBufferReadonly } from 'typegpu';
 import { fullScreenTriangle } from 'typegpu/common';
@@ -638,11 +639,14 @@ export default function () {
     return frame;
   });
 
+  const { width, height } = useWindowDimensions();
+
   return (
     <Canvas
       ref={ref}
       style={{
-        width: '100%',
+        width: width > height ? undefined : '100%',
+        height: width > height ? '100%' : undefined,
         aspectRatio: 1,
       }}
       transparent

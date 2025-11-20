@@ -1,4 +1,4 @@
-import { Dimensions, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Canvas } from 'react-native-wgpu';
 import tgpu from 'typegpu';
 import * as d from 'typegpu/data';
@@ -312,8 +312,8 @@ export default function () {
           top: 0,
           right: 0,
           zIndex: 20,
-          width: Dimensions.get('window').width,
-          height: Dimensions.get('window').height,
+          width: '100%',
+          height: '100%',
         }}
       />
     </View>
