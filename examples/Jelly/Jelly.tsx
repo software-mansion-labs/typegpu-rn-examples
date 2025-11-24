@@ -1,6 +1,7 @@
 import { randf } from '@typegpu/noise';
 import * as sdf from '@typegpu/sdf';
-import { PixelRatio } from 'react-native';
+import { useRef } from 'react';
+import { PixelRatio, useWindowDimensions } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { Canvas } from 'react-native-wgpu';
 import tgpu from 'typegpu';
@@ -879,7 +880,8 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
         d.vec2f((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2),
       );
 
-      eventHandler.handleTouch(isDragging, mousePos);
+      const { canvasWidth, offsetLeft } = layoutRef.current;
+      eventHandler.handleTouch(isDragging, mousePos, canvasWidth, offsetLeft);
       eventHandler.update();
 
       if (eventHandler.isActive) {
@@ -916,11 +918,19 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     return render;
   });
 
+  const { width, height } = useWindowDimensions();
+  const canvasSize = width > height ? height : width;
+  const offsetLeft = width > height ? (width - height) / 2 : 0;
+
+  const layoutRef = useRef({ canvasWidth: canvasSize, offsetLeft });
+  layoutRef.current = { canvasWidth: canvasSize, offsetLeft };
+
   return (
     <Canvas
       ref={ref}
       style={{
-        width: '100%',
+        width: width > height ? undefined : '100%',
+        height: width > height ? '100%' : undefined,
         aspectRatio: 1,
       }}
       transparent

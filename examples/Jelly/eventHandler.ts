@@ -14,7 +14,6 @@ export class EventHandler {
   private mouseX = 1.0;
   private targetMouseX = 1.0;
   private isPointerDown = false;
-  private canvasWidth: number;
 
   constructor(canvasWidth: number) {
     this.canvasWidth = canvasWidth;
@@ -27,9 +26,11 @@ export class EventHandler {
   handleTouch(
     isDragging: SharedValue<boolean> | undefined,
     mousePos: SharedValue<{ x: number; y: number }> | undefined,
+    canvasWidth: number,
+    offsetLeft: number,
   ) {
     if (isDragging?.value && mousePos?.value.x !== undefined) {
-      const normalizedX = mousePos.value.x / this.canvasWidth;
+      const normalizedX = (mousePos.value.x - offsetLeft) / canvasWidth;
       this.updateTargetMouseX(normalizedX);
       this.isPointerDown = true;
     } else {

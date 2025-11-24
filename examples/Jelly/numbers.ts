@@ -1,11 +1,23 @@
-import { Image } from 'react-native';
+import { Image, Platform } from 'react-native';
 import type { SampledFlag, StorageFlag, TgpuRoot, TgpuTexture } from 'typegpu';
 import * as d from 'typegpu/data';
 import * as std from 'typegpu/std';
 
 const PERCENTAGE_WIDTH = 256 * 2;
 const PERCENTAGE_HEIGHT = 128 * 2;
-const PERCENTAGE_COUNT = 101; // 0% to 100%
+const PERCENTAGE_COUNT = 101;
+
+const character0 = require('../../assets/numbers/character-0.png');
+const character1 = require('../../assets/numbers/character-1.png');
+const character2 = require('../../assets/numbers/character-2.png');
+const character3 = require('../../assets/numbers/character-3.png');
+const character4 = require('../../assets/numbers/character-4.png');
+const character5 = require('../../assets/numbers/character-5.png');
+const character6 = require('../../assets/numbers/character-6.png');
+const character7 = require('../../assets/numbers/character-7.png');
+const character8 = require('../../assets/numbers/character-8.png');
+const character9 = require('../../assets/numbers/character-9.png');
+const characterPercent = require('../../assets/numbers/character-percent.png');
 
 export class NumberProvider {
   #root: TgpuRoot;
@@ -31,36 +43,48 @@ export class NumberProvider {
   }
 
   async fillAtlas() {
-    const sources = [
-      Image.resolveAssetSource(require(`../../assets/numbers/character-0.png`))
-        .uri,
-      Image.resolveAssetSource(require(`../../assets/numbers/character-1.png`))
-        .uri,
-      Image.resolveAssetSource(require(`../../assets/numbers/character-2.png`))
-        .uri,
-      Image.resolveAssetSource(require(`../../assets/numbers/character-3.png`))
-        .uri,
-      Image.resolveAssetSource(require(`../../assets/numbers/character-4.png`))
-        .uri,
-      Image.resolveAssetSource(require(`../../assets/numbers/character-5.png`))
-        .uri,
-      Image.resolveAssetSource(require(`../../assets/numbers/character-6.png`))
-        .uri,
-      Image.resolveAssetSource(require(`../../assets/numbers/character-7.png`))
-        .uri,
-      Image.resolveAssetSource(require(`../../assets/numbers/character-8.png`))
-        .uri,
-      Image.resolveAssetSource(require(`../../assets/numbers/character-9.png`))
-        .uri,
-      Image.resolveAssetSource(
-        require(`../../assets/numbers/character-percent.png`),
-      ).uri,
+    const assets = [
+      character0,
+      character1,
+      character2,
+      character3,
+      character4,
+      character5,
+      character6,
+      character7,
+      character8,
+      character9,
+      characterPercent,
     ];
+
+    // biome-ignore lint/suspicious/noExplicitAny: weird platform specific image asset handling
+    const getAssetUri = (asset: any): string => {
+      if (Platform.OS === 'web') {
+        if (typeof asset === 'string') {
+          return asset;
+        }
+        return asset.uri;
+      }
+      return Image.resolveAssetSource(asset).uri;
+    };
+
+    const sources = assets.map(getAssetUri);
 
     const bitmaps = await Promise.all(
       sources.map(async (url) => {
-        const response = await fetch(url);
-        return await createImageBitmap(await response.blob());
+        try {
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
+          }
+          const blob = await response.blob();
+          return await createImageBitmap(blob, {
+            colorSpaceConversion: 'none',
+          });
+        } catch (error) {
+          console.error('Failed to load image:', url, error);
+          throw error;
+        }
       }),
     );
 
@@ -69,7 +93,7 @@ export class NumberProvider {
         size: [128, 256, 11],
         format: 'rgba8unorm',
       })
-      .$usage('storage');
+      .$usage('storage', 'render');
     const tempTextureStorageView = tempTexture.createView(
       d.textureStorage2dArray('rgba8unorm', 'read-only'),
     );
