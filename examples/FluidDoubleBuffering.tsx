@@ -1,10 +1,8 @@
 import { randf } from '@typegpu/noise';
 import { useWindowDimensions } from 'react-native';
 import { Canvas } from 'react-native-wgpu';
-import tgpu, { type TgpuBufferMutable, type TgpuBufferReadonly } from 'typegpu';
-import { fullScreenTriangle } from 'typegpu/common';
-import * as d from 'typegpu/data';
-import * as std from 'typegpu/std';
+import type { TgpuBufferMutable, TgpuBufferReadonly } from 'typegpu';
+import tgpu, { common, d, std } from 'typegpu';
 
 import { useWebGPU } from '../useWebGPU.ts';
 
@@ -29,7 +27,7 @@ const BoxObstacle = d.struct({
 const gridSize = 128;
 
 export default function () {
-  const ref = useWebGPU(({ context, device, presentationFormat }) => {
+  const ref = useWebGPU(({ context, device }) => {
     const root = tgpu.initFromDevice({ device });
 
     const gridSizeBuffer = root.createBuffer(d.i32).$usage('uniform');
@@ -62,36 +60,33 @@ export default function () {
       d.bool,
     )(
       (x, y) =>
-        x < gridSizeUniform.value &&
-        x >= 0 &&
-        y < gridSizeUniform.value &&
-        y >= 0,
+        x < gridSizeUniform.$ && x >= 0 && y < gridSizeUniform.$ && y >= 0,
     );
 
     const coordsToIndex = tgpu.fn(
       [d.i32, d.i32],
       d.i32,
-    )((x, y) => x + y * gridSizeUniform.value);
+    )((x, y) => x + y * gridSizeUniform.$);
 
     const getCell = tgpu.fn(
       [d.i32, d.i32],
       d.vec4f,
-    )((x, y) => inputGridSlot.value[coordsToIndex(x, y)]);
+    )((x, y) => inputGridSlot.$[coordsToIndex(x, y)]);
 
     const setCell = tgpu.fn([d.i32, d.i32, d.vec4f])((x, y, value) => {
       const index = coordsToIndex(x, y);
-      outputGridSlot.value[index] = value;
+      outputGridSlot.$[index] = d.vec4f(value);
     });
 
     const setVelocity = tgpu.fn([d.i32, d.i32, d.vec2f])((x, y, velocity) => {
       const index = coordsToIndex(x, y);
-      outputGridSlot.value[index].x = velocity.x;
-      outputGridSlot.value[index].y = velocity.y;
+      outputGridSlot.$[index].x = velocity.x;
+      outputGridSlot.$[index].y = velocity.y;
     });
 
     const addDensity = tgpu.fn([d.i32, d.i32, d.f32])((x, y, density) => {
       const index = coordsToIndex(x, y);
-      outputGridSlot.value[index].z = inputGridSlot.value[index].z + density;
+      outputGridSlot.$[index].z = inputGridSlot.$[index].z + density;
     });
 
     const flowFromCell = tgpu.fn(
@@ -131,7 +126,7 @@ export default function () {
       d.bool,
     )((x, y) => {
       for (let obs_idx = 0; obs_idx < MAX_OBSTACLES; obs_idx += 1) {
-        const obs = obstaclesReadonly.value[obs_idx];
+        const obs = obstaclesReadonly.$[obs_idx];
 
         if (obs.enabled === 0) {
           continue;
@@ -214,7 +209,7 @@ export default function () {
       return leastCostDir;
     });
 
-    const mainInitWorld = tgpu['~unstable'].computeFn({
+    const mainInitWorld = tgpu.computeFn({
       in: { gid: d.builtin.globalInvocationId },
       workgroupSize: [1],
     })((input) => {
@@ -228,21 +223,21 @@ export default function () {
         value = d.vec4f(0, 0, 0, 0);
       } else {
         // Ocean
-        if (y < d.i32(gridSizeUniform.value / 2)) {
-          const depth = 1 - d.f32(y) / d.f32(gridSizeUniform.value / 2);
+        if (y < d.i32(gridSizeUniform.$ / 2)) {
+          const depth = 1 - d.f32(y) / d.f32(gridSizeUniform.$ / 2);
           value = d.vec4f(0, 0, 10 + depth * 10, 0);
         }
       }
 
-      outputGridSlot.value[index] = value;
+      outputGridSlot.$[index] = d.vec4f(value);
     });
 
-    const mainMoveObstacles = tgpu['~unstable'].computeFn({
+    const mainMoveObstacles = tgpu.computeFn({
       workgroupSize: [1],
     })(() => {
       for (let obsIdx = 0; obsIdx < MAX_OBSTACLES; obsIdx += 1) {
-        const obs = prevObstacleReadonly.value[obsIdx];
-        const nextObs = obstaclesReadonly.value[obsIdx];
+        const obs = prevObstacleReadonly.$[obsIdx];
+        const nextObs = obstaclesReadonly.$[obsIdx];
 
         if (obs.enabled === 0) {
           continue;
@@ -373,31 +368,28 @@ export default function () {
       .$usage('uniform');
     const sourceParamsUniform = sourceParamsBuffer.as('uniform');
 
-    const getMinimumInFlow = tgpu['~unstable'].fn(
+    const getMinimumInFlow = tgpu.fn(
       [d.i32, d.i32],
       d.f32,
     )((x, y) => {
-      const gridSizeF = d.f32(gridSizeUniform.value);
-      const sourceRadius = std.max(
-        1,
-        sourceParamsUniform.value.radius * gridSizeF,
-      );
+      const gridSizeF = d.f32(gridSizeUniform.$);
+      const sourceRadius = std.max(1, sourceParamsUniform.$.radius * gridSizeF);
       const sourcePos = d.vec2f(
-        sourceParamsUniform.value.center.x * gridSizeF,
-        sourceParamsUniform.value.center.y * gridSizeF,
+        sourceParamsUniform.$.center.x * gridSizeF,
+        sourceParamsUniform.$.center.y * gridSizeF,
       );
 
       if (
         std.length(d.vec2f(d.f32(x) - sourcePos.x, d.f32(y) - sourcePos.y)) <
         sourceRadius
       ) {
-        return sourceParamsUniform.value.intensity;
+        return sourceParamsUniform.$.intensity;
       }
 
       return 0;
     });
 
-    const mainCompute = tgpu['~unstable'].computeFn({
+    const mainCompute = tgpu.computeFn({
       in: { gid: d.builtin.globalInvocationId },
       workgroupSize: [8, 8],
     })((input) => {
@@ -405,7 +397,7 @@ export default function () {
       const y = d.i32(input.gid.y);
       const index = coordsToIndex(x, y);
 
-      randf.seed2(d.vec2f(d.f32(index)).mul(timeUniform.value));
+      randf.seed2(d.vec2f(d.f32(index)).mul(timeUniform.$));
 
       const next = getCell(x, y);
       const nextVelocity = computeVelocity(x, y);
@@ -423,11 +415,10 @@ export default function () {
       const min_inflow = getMinimumInFlow(x, y);
       next.z = std.max(min_inflow, next.z);
 
-      outputGridSlot.value[index] = next;
+      outputGridSlot.$[index] = d.vec4f(next);
     });
 
     const OBSTACLE_BOX = 0;
-    const OBSTACLE_LEFT_WALL = 1;
 
     const obstacles: {
       x: number;
@@ -453,22 +444,15 @@ export default function () {
       }));
     }
 
-    const boxX = 0.5;
-    const limitedBoxX = () => {
-      const leftWallWidth = obstacles[OBSTACLE_LEFT_WALL].width;
-      return Math.max(boxX, leftWallX + leftWallWidth / 2 + 0.15);
-    };
-    const leftWallX = 0;
-
-    const fragmentMain = tgpu['~unstable'].fragmentFn({
+    const fragmentMain = tgpu.fragmentFn({
       in: { uv: d.vec2f },
       out: d.vec4f,
     })((input) => {
-      const x = d.i32(input.uv.x * d.f32(gridSizeUniform.value));
-      const y = d.i32((1 - input.uv.y) * d.f32(gridSizeUniform.value));
+      const x = d.i32(input.uv.x * d.f32(gridSizeUniform.$));
+      const y = d.i32((1 - input.uv.y) * d.f32(gridSizeUniform.$));
 
       const index = coordsToIndex(x, y);
-      const cell = inputGridSlot.value[index];
+      const cell = inputGridSlot.$[index];
       const density = std.max(0, cell.z);
 
       const obstacleColor = d.vec4f(
@@ -534,30 +518,27 @@ export default function () {
       inputGridReadonly: TgpuBufferReadonly<GridData>,
       outputGridMutable: TgpuBufferMutable<GridData>,
     ) {
-      const initWorldPipeline = root['~unstable']
+      const initWorldPipeline = root
         .with(inputGridSlot, outputGridMutable)
         .with(outputGridSlot, outputGridMutable)
-        .withCompute(mainInitWorld)
-        .createPipeline();
+        .createComputePipeline({ compute: mainInitWorld });
 
-      const computePipeline = root['~unstable']
+      const computePipeline = root
         .with(inputGridSlot, inputGridReadonly)
         .with(outputGridSlot, outputGridMutable)
-        .withCompute(mainCompute)
-        .createPipeline();
+        .createComputePipeline({ compute: mainCompute });
 
-      const moveObstaclesPipeline = root['~unstable']
+      const moveObstaclesPipeline = root
         .with(inputGridSlot, outputGridMutable)
         .with(outputGridSlot, outputGridMutable)
-        .withCompute(mainMoveObstacles)
-        .createPipeline();
+        .createComputePipeline({ compute: mainMoveObstacles });
 
-      const renderPipeline = root['~unstable']
+      const renderPipeline = root
         .with(inputGridSlot, inputGridReadonly)
-        .withVertex(fullScreenTriangle, {})
-        .withFragment(fragmentMain, { format: presentationFormat })
-        .withPrimitive({ topology: 'triangle-strip' })
-        .createPipeline();
+        .createRenderPipeline({
+          vertex: common.fullScreenTriangle,
+          fragment: fragmentMain,
+        });
 
       return {
         init() {

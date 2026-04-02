@@ -3,6 +3,18 @@ import * as d from 'typegpu/data';
 
 // schemas
 
+export type Line3 = d.Infer<typeof Line3>;
+export const Line3 = d.struct({
+  /**
+   * A point on the line
+   */
+  origin: d.vec3f,
+  /**
+   * Normalized direction along the line
+   */
+  dir: d.vec3f,
+});
+
 export const Camera = d.struct({
   position: d.vec4f,
   targetPos: d.vec4f,
@@ -35,12 +47,6 @@ export const ModelVertexOutput = {
   applySeaDesaturation: d.interpolate('flat', d.u32), // bool
 } as const;
 
-export const MouseRay = d.struct({
-  activated: d.u32,
-  pointX: d.vec3f,
-  pointY: d.vec3f,
-});
-
 // layouts
 
 export const modelVertexLayout = tgpu.vertexLayout(
@@ -65,6 +71,5 @@ export const computeBindGroupLayout = tgpu.bindGroupLayout({
     storage: ModelDataArray,
     access: 'mutable',
   },
-  mouseRay: { uniform: MouseRay },
   timePassed: { uniform: d.u32 },
 });

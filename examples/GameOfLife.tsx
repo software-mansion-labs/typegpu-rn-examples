@@ -7,7 +7,7 @@ import * as std from 'typegpu/std';
 import { useWebGPU } from '../useWebGPU.ts';
 
 export default function () {
-  const ref = useWebGPU(({ context, device, presentationFormat }) => {
+  const ref = useWebGPU(({ context, device }) => {
     const root = tgpu.initFromDevice({ device });
     const size = d.vec2u(64);
 
@@ -34,7 +34,7 @@ export default function () {
              getCell(x - 1, y + 1) + getCell(x, y + 1) + getCell(x + 1, y + 1);
     };
 
-    const computeFn = root['~unstable'].createGuardedComputePipeline((x, y) => {
+    const computeFn = root.createGuardedComputePipeline((x, y) => {
       'use gpu';
       const n = countNeighbors(x, y);
       computeLayout.$.next[getIndex(x, y)] = d.u32(
@@ -49,7 +49,7 @@ export default function () {
     const squareVertexLayout = tgpu.vertexLayout(d.arrayOf(d.vec2u), 'vertex');
     const cellsVertexLayout = tgpu.vertexLayout(d.arrayOf(d.u32), 'instance');
 
-    const vertexFn = tgpu['~unstable'].vertexFn({
+    const vertexFn = tgpu.vertexFn({
       in: {
         iid: d.builtin.instanceIndex,
         cell: d.u32,
@@ -81,7 +81,7 @@ export default function () {
       };
     });
 
-    const fragmentFn = tgpu['~unstable'].fragmentFn({
+    const fragmentFn = tgpu.fragmentFn({
       in: {
         cell: d.interpolate('flat', d.u32),
         uv: d.vec2f,
@@ -95,16 +95,15 @@ export default function () {
       return d.vec4f(u.x, u.y, 1 - u.x, 0.8);
     });
 
-    const renderPipeline = root['~unstable']
-      .withVertex(vertexFn, {
+    const renderPipeline = root.createRenderPipeline({
+      attribs: {
         cell: cellsVertexLayout.attrib,
         pos: squareVertexLayout.attrib,
-      })
-      .withFragment(fragmentFn, {
-        format: presentationFormat,
-      })
-      .withPrimitive({ topology: 'triangle-strip' })
-      .createPipeline();
+      },
+      vertex: vertexFn,
+      fragment: fragmentFn,
+      primitive: { topology: 'triangle-strip' },
+    });
 
     const length = size.x * size.y;
     const buffers = [

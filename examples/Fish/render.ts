@@ -1,24 +1,23 @@
-import tgpu from 'typegpu';
-import * as d from 'typegpu/data';
-import * as std from 'typegpu/std';
+import { hsvToRgb, rgbToHsv } from '@typegpu/color';
+import tgpu, { d, std } from 'typegpu';
+
 import * as p from './params.ts';
 import {
   ModelVertexInput,
   ModelVertexOutput,
   renderBindGroupLayout,
 } from './schemas.ts';
-import { hsvToRgb, rgbToHsv } from './tgsl-helpers.ts';
 
 const { camera, modelTexture, sampler, modelData } =
   renderBindGroupLayout.bound;
 
-export const vertexShader = tgpu['~unstable'].vertexFn({
+export const vertexShader = tgpu.vertexFn({
   in: { ...ModelVertexInput, instanceIndex: d.builtin.instanceIndex },
   out: ModelVertexOutput,
 })((input) => {
   // rotate the model so that it aligns with model's direction of movement
   // https://simple.wikipedia.org/wiki/Pitch,_yaw,_and_roll
-  const currentModelData = modelData.value[input.instanceIndex];
+  const currentModelData = modelData.$[input.instanceIndex];
 
   const modelPosition = input.modelPosition;
 
@@ -70,7 +69,7 @@ export const vertexShader = tgpu['~unstable'].vertexFn({
   };
 });
 
-export const fragmentShader = tgpu['~unstable'].fragmentFn({
+export const fragmentShader = tgpu.fragmentFn({
   in: ModelVertexOutput,
   out: d.vec4f,
 })((input) => {
@@ -79,7 +78,7 @@ export const fragmentShader = tgpu['~unstable'].fragmentFn({
   // then apply sea fog and sea desaturation
 
   const viewDirection = std.normalize(
-    std.sub(camera.value.position.xyz, input.worldPosition),
+    std.sub(camera.$.position.xyz, input.worldPosition),
   );
   const textureColorWithAlpha = std.textureSample(
     modelTexture.$,
@@ -113,10 +112,10 @@ export const fragmentShader = tgpu['~unstable'].fragmentFn({
   const lightedColor = std.add(ambient, std.add(diffuse, specular));
 
   const distanceFromCamera = std.length(
-    std.sub(camera.value.position.xyz, input.worldPosition),
+    std.sub(camera.$.position.xyz, input.worldPosition),
   );
 
-  let desaturatedColor = lightedColor;
+  let desaturatedColor = d.vec3f(lightedColor);
   if (input.applySeaDesaturation === 1) {
     const desaturationFactor = -std.atan2((distanceFromCamera - 5) / 10, 1) / 3;
     const hsv = rgbToHsv(desaturatedColor);
@@ -125,7 +124,7 @@ export const fragmentShader = tgpu['~unstable'].fragmentFn({
     desaturatedColor = hsvToRgb(hsv);
   }
 
-  let foggedColor = desaturatedColor;
+  let foggedColor = d.vec3f(desaturatedColor);
   if (input.applySeaFog === 1) {
     const fogParameter = std.max(0, (distanceFromCamera - 1.5) * 0.2);
     const fogFactor = fogParameter / (1 + fogParameter);

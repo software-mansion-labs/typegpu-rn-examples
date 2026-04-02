@@ -1,8 +1,6 @@
 import { useWindowDimensions } from 'react-native';
 import { Canvas } from 'react-native-wgpu';
-import tgpu from 'typegpu';
-import * as d from 'typegpu/data';
-import * as std from 'typegpu/std';
+import tgpu, { d, std } from 'typegpu';
 
 import { useWebGPU } from '../useWebGPU.ts';
 
@@ -39,7 +37,7 @@ const VertexOutput = {
   color: d.vec4f,
 };
 
-const mainVert = tgpu['~unstable'].vertexFn({
+const mainVert = tgpu.vertexFn({
   in: { v: d.vec2f, center: d.vec2f, velocity: d.vec2f },
   out: VertexOutput,
 })(({ v, center, velocity }) => {
@@ -61,7 +59,7 @@ const mainVert = tgpu['~unstable'].vertexFn({
   };
 });
 
-const mainFrag = tgpu['~unstable'].fragmentFn({
+const mainFrag = tgpu.fragmentFn({
   in: VertexOutput,
   out: d.vec4f,
 })(({ color }) => {
@@ -132,13 +130,13 @@ const presets = {
   },
 } as const;
 
-const TriangleDataArray = (n: number) => d.arrayOf(TriangleData, n);
+const TriangleDataArray = d.arrayOf(TriangleData);
 
-const vertexLayout = tgpu.vertexLayout((n: number) => d.arrayOf(d.vec2f, n));
+const vertexLayout = tgpu.vertexLayout(d.arrayOf(d.vec2f));
 const instanceLayout = tgpu.vertexLayout(TriangleDataArray, 'instance');
 
 export default function () {
-  const ref = useWebGPU(({ context, device, presentationFormat }) => {
+  const ref = useWebGPU(({ context, device }) => {
     const root = tgpu.initFromDevice({ device });
 
     const paramsBuffer = root
@@ -177,16 +175,16 @@ export default function () {
       .createBuffer(d.vec3f, colorPresets.typegpu)
       .$usage('uniform');
 
-    const renderPipeline = root['~unstable']
-      .withVertex(mainVert, {
-        v: vertexLayout.attrib,
-        center: instanceLayout.attrib.position,
-        velocity: instanceLayout.attrib.velocity,
+    const renderPipeline = root
+      .createRenderPipeline({
+        attribs: {
+          v: vertexLayout.attrib,
+          center: instanceLayout.attrib.position,
+          velocity: instanceLayout.attrib.velocity,
+        },
+        vertex: mainVert,
+        fragment: mainFrag,
       })
-      .withFragment(mainFrag, {
-        format: presentationFormat,
-      })
-      .createPipeline()
       .with(vertexLayout, triangleVertexBuffer);
 
     const computeBindGroupLayout = tgpu
@@ -202,7 +200,7 @@ export default function () {
     const { currentTrianglePos, nextTrianglePos } =
       computeBindGroupLayout.bound;
 
-    const mainCompute = tgpu['~unstable']
+    const mainCompute = tgpu
       .computeFn({
         in: { gid: d.builtin.globalInvocationId },
         workgroupSize: [1],
@@ -262,9 +260,9 @@ export default function () {
       }`)
       .$uses({ currentTrianglePos, nextTrianglePos, params, triangleSize });
 
-    const computePipeline = root['~unstable']
-      .withCompute(mainCompute)
-      .createPipeline();
+    const computePipeline = root.createComputePipeline({
+      compute: mainCompute,
+    });
 
     const renderBindGroups = [0, 1].map((idx) =>
       root.createBindGroup(renderBindGroupLayout, {
@@ -290,12 +288,7 @@ export default function () {
         .dispatchWorkgroups(triangleAmount);
 
       renderPipeline
-        .withColorAttachment({
-          view: context.getCurrentTexture().createView(),
-          clearValue: [0, 0, 0, 0],
-          loadOp: 'clear' as const,
-          storeOp: 'store' as const,
-        })
+        .withColorAttachment({ view: context })
         .with(instanceLayout, trianglePosBuffers[even ? 1 : 0])
         .with(renderBindGroups[even ? 1 : 0])
         .draw(3, triangleAmount);
