@@ -1,8 +1,6 @@
 import { useWindowDimensions } from 'react-native';
 import { Canvas } from 'react-native-wgpu';
-import tgpu from 'typegpu';
-import * as d from 'typegpu/data';
-import * as std from 'typegpu/std';
+import tgpu, { d, std } from 'typegpu';
 
 import { useWebGPU } from '../useWebGPU.ts';
 

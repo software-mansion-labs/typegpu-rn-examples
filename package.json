@@ -13,9 +13,10 @@
   "dependencies": {
     "@loaders.gl/core": "^4.3.4",
     "@loaders.gl/obj": "^4.3.4",
-    "@typegpu/color": "^0.10.0",
-    "@typegpu/noise": "^0.10.0",
-    "@typegpu/sdf": "^0.10.0",
+    "@typegpu/color": "^0.11.0",
+    "@typegpu/noise": "^0.11.0",
+    "@typegpu/react": "^0.11.0",
+    "@typegpu/sdf": "^0.11.1",
     "expo": "~54.0.21",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -26,8 +27,8 @@
     "react-native-web": "^0.21.0",
     "react-native-wgpu": "^0.5.9",
     "react-native-worklets": "^0.8.1",
-    "typegpu": "0.10.2",
-    "unplugin-typegpu": "^0.10.2",
+    "typegpu": "0.11.3",
+    "unplugin-typegpu": "^0.11.3",
     "wgpu-matrix": "^3.4.2"
   },
   "devDependencies": {
