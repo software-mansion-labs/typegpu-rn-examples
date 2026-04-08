@@ -7,13 +7,14 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import Boids from './examples/Boids.tsx';
-import Fish from './examples/Fish/Fish.tsx';
-import FluidDoubleBuffering from './examples/FluidDoubleBuffering.tsx';
-import FluidWithAtomics from './examples/FluidWithAtomics.tsx';
-import FunctionVisualizer from './examples/FunctionVisualizer.tsx';
-import GameOfLife from './examples/GameOfLife.tsx';
-import Jelly from './examples/Jelly/Jelly.tsx';
+
+// import Boids from "./examples/Boids.tsx";
+// import Fish from './examples/Fish/Fish.tsx';
+// import FluidDoubleBuffering from './examples/FluidDoubleBuffering.tsx';
+// import FluidWithAtomics from './examples/FluidWithAtomics.tsx';
+// import FunctionVisualizer from './examples/FunctionVisualizer.tsx';
+// import GameOfLife from './examples/GameOfLife.tsx';
+// import Jelly from './examples/Jelly/Jelly.tsx';
 
 const examples = ['🐠', '🚰', '🎮', '📈', '🛁', '🐥', '🪼'] as const;
 
@@ -56,7 +57,7 @@ export default function App() {
                 width: '100%',
               }}
             >
-              {currentExample === '🐥' ? (
+              {/*{currentExample === '🐥' ? (
                 <Boids />
               ) : currentExample === '🛁' ? (
                 <FluidDoubleBuffering />
@@ -70,7 +71,7 @@ export default function App() {
                 <Fish />
               ) : currentExample === '🪼' ? (
                 <Jelly isDragging={isDragging} mousePos={mousePos} />
-              ) : null}
+              ) : null}*/}
             </Animated.View>
           </GestureDetector>
           <View
