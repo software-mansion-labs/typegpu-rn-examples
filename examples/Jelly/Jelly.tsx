@@ -4,10 +4,8 @@ import { useRef } from 'react';
 import { PixelRatio, useWindowDimensions } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { Canvas } from 'react-native-wgpu';
-import tgpu from 'typegpu';
+import tgpu, { d, std } from 'typegpu';
 import { fullScreenTriangle } from 'typegpu/common';
-import * as d from 'typegpu/data';
-import * as std from 'typegpu/std';
 import { useWebGPU } from '../../useWebGPU.ts';
 import { CameraController } from './camera.ts';
 import {
@@ -86,7 +84,7 @@ export default function Jelly({ isDragging, mousePos }: JellyProps) {
     const textures = createTextures(root, width, height);
     const backgroundTexture = createBackgroundTexture(root, width, height);
 
-    const filteringSampler = root['~unstable'].createSampler({
+    const filteringSampler = root.createSampler({
       magFilter: 'linear',
       minFilter: 'linear',
     });

@@ -1,83 +1,81 @@
+import {
+  useBindGroup,
+  useBuffer,
+  useConfigureContext,
+  useFrame,
+  useRoot,
+  useUniform,
+} from '@typegpu/react';
+import { useMemo, useRef } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { Canvas } from 'react-native-wgpu';
-import tgpu, { d, std } from 'typegpu';
-
-import { useWebGPU } from '../useWebGPU.ts';
+import tgpu, { d, std, type TgpuFragmentFn, type TgpuVertexFn } from 'typegpu';
 
 const triangleAmount = 500;
 const triangleSize = 0.08;
 
-const rotate = (v: d.v2f, angle: number) => {
+function rotate(v: d.v2f, angle: number) {
   'use gpu';
-  const pos = d.vec2f(
+  return d.vec2f(
     v.x * std.cos(angle) - v.y * std.sin(angle),
     v.x * std.sin(angle) + v.y * std.cos(angle),
   );
+}
 
-  return pos;
-};
-
-const getRotationFromVelocity = (velocity: d.v2f) => {
+function getRotationFromVelocity(velocity: d.v2f) {
   'use gpu';
   return -std.atan2(velocity.x, velocity.y);
-};
+}
 
-const TriangleData = d.struct({
+const Boid = d.struct({
   position: d.vec2f,
   velocity: d.vec2f,
 });
 
-const renderBindGroupLayout = tgpu.bindGroupLayout({
-  trianglePos: { uniform: d.arrayOf(TriangleData, triangleAmount) },
+const renderLayout = tgpu.bindGroupLayout({
+  boids: { storage: d.arrayOf(Boid), access: 'readonly' },
   colorPalette: { uniform: d.vec3f },
 });
 
-const VertexOutput = {
-  position: d.builtin.position,
-  color: d.vec4f,
-};
+const triangleVertices = tgpu.const(d.arrayOf(d.vec2f), [
+  d.vec2f(0.0, triangleSize),
+  d.vec2f(-triangleSize / 2, -triangleSize / 2),
+  d.vec2f(triangleSize / 2, -triangleSize / 2),
+]);
 
-const mainVert = tgpu.vertexFn({
-  in: { v: d.vec2f, center: d.vec2f, velocity: d.vec2f },
-  out: VertexOutput,
-})(({ v, center, velocity }) => {
-  const angle = getRotationFromVelocity(velocity);
-  const rotated = rotate(v, angle);
+function mainVert(input: TgpuVertexFn.AutoInEmpty) {
+  'use gpu';
 
-  const pos = d.vec4f(rotated.add(center), 0.0, 1.0);
+  const boid = renderLayout.$.boids[input.$instanceIndex];
+  const localPos = triangleVertices.$[input.$vertexIndex];
+
+  const angle = getRotationFromVelocity(boid.velocity);
+
+  const pos = d.vec4f(boid.position + rotate(localPos, angle), 0, 1);
   const color = d.vec4f(
-    std
-      .sin(renderBindGroupLayout.$.colorPalette.add(angle))
-      .mul(0.45)
-      .add(0.45),
-    1.0,
+    std.sin(renderLayout.$.colorPalette + angle) * 0.45 + 0.45,
+    1,
   );
 
   return {
-    position: pos,
-    color: color,
+    $position: pos,
+    color,
   };
+}
+
+function mainFrag(input: TgpuFragmentFn.AutoIn<{ color: d.v4f }>) {
+  'use gpu';
+  return input.color;
+}
+
+const Params = d.struct({
+  separationDistance: d.f32,
+  separationStrength: d.f32,
+  alignmentDistance: d.f32,
+  alignmentStrength: d.f32,
+  cohesionDistance: d.f32,
+  cohesionStrength: d.f32,
 });
-
-const mainFrag = tgpu.fragmentFn({
-  in: VertexOutput,
-  out: d.vec4f,
-})(({ color }) => {
-  return color;
-});
-
-const Params = d
-  .struct({
-    separationDistance: d.f32,
-    separationStrength: d.f32,
-    alignmentDistance: d.f32,
-    alignmentStrength: d.f32,
-    cohesionDistance: d.f32,
-    cohesionStrength: d.f32,
-  })
-  .$name('Params');
-
-type Params = d.Infer<typeof Params>;
 
 const colorPresets = {
   plumTree: d.vec3f(1.0, 2.0, 1.0),
@@ -130,171 +128,155 @@ const presets = {
   },
 } as const;
 
-const TriangleDataArray = d.arrayOf(TriangleData);
+// compute
 
-const vertexLayout = tgpu.vertexLayout(d.arrayOf(d.vec2f));
-const instanceLayout = tgpu.vertexLayout(TriangleDataArray, 'instance');
+const computeLayout = tgpu.bindGroupLayout({
+  params: { uniform: Params },
+  boids: { storage: d.arrayOf(Boid), access: 'readonly' },
+  nextBoids: { storage: d.arrayOf(Boid), access: 'mutable' },
+});
 
-export default function () {
-  const ref = useWebGPU(({ context, device }) => {
-    const root = tgpu.initFromDevice({ device });
+function mainCompute(boidIdx: number) {
+  'use gpu';
+  const params = computeLayout.$.params;
+  const currentBoid = computeLayout.$.boids[boidIdx];
+  const nextBoid = computeLayout.$.nextBoids[boidIdx];
 
-    const paramsBuffer = root
-      .createBuffer(Params, presets.default)
-      .$usage('uniform');
-    const params = paramsBuffer.as('uniform');
+  let separation = d.vec2f();
+  let alignment = d.vec2f();
+  let cohesion = d.vec2f();
+  let alignmentCount = d.u32(0);
+  let cohesionCount = d.u32(0);
 
-    const triangleVertexBuffer = root
-      .createBuffer(d.arrayOf(d.vec2f, 3), [
-        d.vec2f(0.0, triangleSize),
-        d.vec2f(-triangleSize / 2, -triangleSize / 2),
-        d.vec2f(triangleSize / 2, -triangleSize / 2),
-      ])
-      .$usage('vertex');
-
-    const trianglePosBuffers = Array.from({ length: 2 }, () =>
-      root
-        .createBuffer(d.arrayOf(TriangleData, triangleAmount))
-        .$usage('storage', 'uniform', 'vertex'),
-    );
-
-    const randomizePositions = () => {
-      const positions = Array.from({ length: triangleAmount }, () => ({
-        position: d.vec2f(Math.random() * 2 - 1, Math.random() * 2 - 1),
-        velocity: d.vec2f(
-          Math.random() * 0.1 - 0.05,
-          Math.random() * 0.1 - 0.05,
-        ),
-      }));
-      trianglePosBuffers[0].write(positions);
-      trianglePosBuffers[1].write(positions);
-    };
-    randomizePositions();
-
-    const colorPaletteBuffer = root
-      .createBuffer(d.vec3f, colorPresets.typegpu)
-      .$usage('uniform');
-
-    const renderPipeline = root
-      .createRenderPipeline({
-        attribs: {
-          v: vertexLayout.attrib,
-          center: instanceLayout.attrib.position,
-          velocity: instanceLayout.attrib.velocity,
-        },
-        vertex: mainVert,
-        fragment: mainFrag,
-      })
-      .with(vertexLayout, triangleVertexBuffer);
-
-    const computeBindGroupLayout = tgpu
-      .bindGroupLayout({
-        currentTrianglePos: { storage: TriangleDataArray },
-        nextTrianglePos: {
-          storage: TriangleDataArray,
-          access: 'mutable',
-        },
-      })
-      .$name('compute');
-
-    const { currentTrianglePos, nextTrianglePos } =
-      computeBindGroupLayout.bound;
-
-    const mainCompute = tgpu
-      .computeFn({
-        in: { gid: d.builtin.globalInvocationId },
-        workgroupSize: [1],
-      })(/* wgsl */ `{
-        let index = in.gid.x;
-        var instanceInfo = currentTrianglePos[index];
-        var separation = vec2f();
-        var alignment = vec2f();
-        var cohesion = vec2f();
-        var alignmentCount = 0u;
-        var cohesionCount = 0u;
-
-        for (var i = 0u; i < arrayLength(&currentTrianglePos); i += 1) {
-          if (i == index) {
-            continue;
-          }
-          var other = currentTrianglePos[i];
-          var dist = distance(instanceInfo.position, other.position);
-          if (dist < params.separationDistance) {
-            separation += instanceInfo.position - other.position;
-          }
-          if (dist < params.alignmentDistance) {
-            alignment += other.velocity;
-            alignmentCount++;
-          }
-          if (dist < params.cohesionDistance) {
-            cohesion += other.position;
-            cohesionCount++;
-          }
-        };
-        if (alignmentCount > 0u) {
-          alignment = alignment / f32(alignmentCount);
-        }
-        if (cohesionCount > 0u) {
-          cohesion = (cohesion / f32(cohesionCount)) - instanceInfo.position;
-        }
-        instanceInfo.velocity +=
-          (separation * params.separationStrength)
-          + (alignment * params.alignmentStrength)
-          + (cohesion * params.cohesionStrength);
-        instanceInfo.velocity = normalize(instanceInfo.velocity) * clamp(length(instanceInfo.velocity), 0.0, 0.01);
-
-        if (instanceInfo.position[0] > 1.0 + triangleSize) {
-          instanceInfo.position[0] = -1.0 - triangleSize;
-        }
-        if (instanceInfo.position[1] > 1.0 + triangleSize) {
-          instanceInfo.position[1] = -1.0 - triangleSize;
-        }
-        if (instanceInfo.position[0] < -1.0 - triangleSize) {
-          instanceInfo.position[0] = 1.0 + triangleSize;
-        }
-        if (instanceInfo.position[1] < -1.0 - triangleSize) {
-          instanceInfo.position[1] = 1.0 + triangleSize;
-        }
-        instanceInfo.position += instanceInfo.velocity;
-        nextTrianglePos[index] = instanceInfo;
-      }`)
-      .$uses({ currentTrianglePos, nextTrianglePos, params, triangleSize });
-
-    const computePipeline = root.createComputePipeline({
-      compute: mainCompute,
-    });
-
-    const renderBindGroups = [0, 1].map((idx) =>
-      root.createBindGroup(renderBindGroupLayout, {
-        trianglePos: trianglePosBuffers[idx],
-        colorPalette: colorPaletteBuffer,
-      }),
-    );
-
-    const computeBindGroups = [0, 1].map((idx) =>
-      root.createBindGroup(computeBindGroupLayout, {
-        currentTrianglePos: trianglePosBuffers[idx],
-        nextTrianglePos: trianglePosBuffers[1 - idx],
-      }),
-    );
-
-    let even = false;
-
-    function frame() {
-      even = !even;
-
-      computePipeline
-        .with(computeBindGroups[even ? 0 : 1])
-        .dispatchWorkgroups(triangleAmount);
-
-      renderPipeline
-        .withColorAttachment({ view: context })
-        .with(instanceLayout, trianglePosBuffers[even ? 1 : 0])
-        .with(renderBindGroups[even ? 1 : 0])
-        .draw(3, triangleAmount);
+  for (let i = d.u32(0); i < computeLayout.$.boids.length; i++) {
+    if (i === boidIdx) {
+      continue;
     }
 
-    return frame;
+    const other = computeLayout.$.boids[i];
+    const dist = std.distance(currentBoid.position, other.position);
+    if (dist < params.separationDistance) {
+      separation += currentBoid.position - other.position;
+    }
+    if (dist < params.alignmentDistance) {
+      alignment += other.velocity;
+      alignmentCount++;
+    }
+    if (dist < params.cohesionDistance) {
+      cohesion += other.position;
+      cohesionCount++;
+    }
+  }
+  if (alignmentCount > 0) {
+    alignment = alignment / d.f32(alignmentCount);
+  }
+  if (cohesionCount > 0) {
+    cohesion = cohesion / d.f32(cohesionCount) - currentBoid.position;
+  }
+
+  let newPosition = d.vec2f(currentBoid.position);
+  let newVelocity = d.vec2f(currentBoid.velocity);
+
+  newVelocity +=
+    separation * params.separationStrength +
+    alignment * params.alignmentStrength +
+    cohesion * params.cohesionStrength;
+  newVelocity =
+    std.normalize(newVelocity) * std.clamp(std.length(newVelocity), 0, 0.01);
+
+  if (newPosition[0] > 1.0 + triangleSize) {
+    newPosition[0] = -1.0 - triangleSize;
+  }
+  if (newPosition[1] > 1.0 + triangleSize) {
+    newPosition[1] = -1.0 - triangleSize;
+  }
+  if (newPosition[0] < -1.0 - triangleSize) {
+    newPosition[0] = 1.0 + triangleSize;
+  }
+  if (newPosition[1] < -1.0 - triangleSize) {
+    newPosition[1] = 1.0 + triangleSize;
+  }
+  newPosition += newVelocity;
+  nextBoid.position = d.vec2f(newPosition);
+  nextBoid.velocity = d.vec2f(newVelocity);
+}
+
+export default function Boids() {
+  const root = useRoot();
+
+  const paramsUniform = useUniform(Params, { initial: presets.default });
+  const colorPaletteUniform = useUniform(d.vec3f, {
+    initial: colorPresets.typegpu,
+  });
+
+  const initialData = useMemo(
+    () =>
+      Array.from({ length: triangleAmount }, () => ({
+        position: [Math.random() * 2 - 1, Math.random() * 2 - 1] as [
+          number,
+          number,
+        ],
+        velocity: [Math.random() * 0.1 - 0.05, Math.random() * 0.1 - 0.05] as [
+          number,
+          number,
+        ],
+      })),
+    [],
+  );
+
+  const boidBuffers = [0, 1].map(() =>
+    // biome-ignore lint/correctness/useHookAtTopLevel: it's always 2 calls
+    useBuffer(d.arrayOf(Boid, triangleAmount), {
+      initial: initialData,
+    }).$usage('storage'),
+  );
+  const computePipeline = useMemo(
+    () => root.createGuardedComputePipeline(mainCompute),
+    [root],
+  );
+
+  const renderPipeline = useMemo(
+    () => root.createRenderPipeline({ vertex: mainVert, fragment: mainFrag }),
+    [root],
+  );
+
+  const computeBindGroups = [0, 1].map((idx) =>
+    // biome-ignore lint/correctness/useHookAtTopLevel: it's always 2 calls
+    useBindGroup(computeLayout, {
+      params: paramsUniform.buffer,
+      boids: boidBuffers[idx],
+      nextBoids: boidBuffers[1 - idx],
+    }),
+  );
+
+  const renderBindGroups = [0, 1].map((idx) =>
+    // biome-ignore lint/correctness/useHookAtTopLevel: it's always 2 calls
+    useBindGroup(renderLayout, {
+      boids: boidBuffers[idx],
+      colorPalette: colorPaletteUniform.buffer,
+    }),
+  );
+
+  const { ref, ctxRef } = useConfigureContext({ alphaMode: 'premultiplied' });
+
+  const evenRef = useRef(false);
+  useFrame(() => {
+    if (!ctxRef.current) {
+      return;
+    }
+
+    evenRef.current = !evenRef.current;
+
+    computePipeline
+      .with(computeBindGroups[evenRef.current ? 0 : 1])
+      .dispatchThreads(triangleAmount);
+
+    renderPipeline
+      .withColorAttachment({ view: ctxRef.current })
+      .with(renderBindGroups[evenRef.current ? 1 : 0])
+      .draw(3, triangleAmount);
+
+    ctxRef.current.present?.();
   });
 
   const { width, height } = useWindowDimensions();
