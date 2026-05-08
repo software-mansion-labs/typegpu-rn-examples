@@ -5,17 +5,20 @@ import {
   useFrame,
   useRoot,
   useUniform,
-} from '@typegpu/react';
-import { useMemo, useRef } from 'react';
-import { useWindowDimensions } from 'react-native';
-import { Canvas } from 'react-native-wgpu';
-import tgpu, { d, std, type TgpuFragmentFn, type TgpuVertexFn } from 'typegpu';
+} from "@typegpu/react";
+import { useMemo, useRef } from "react";
+import { useWindowDimensions } from "react-native";
+import { Canvas, WebGPUModule } from "react-native-wgpu";
+import tgpu, { type TgpuVertexFn, type TgpuFragmentFn, d, std } from "typegpu";
+import { useFrame as useFrameUI, useRootUI } from "./hooks.ts";
+
+WebGPUModule.install();
 
 const triangleAmount = 500;
 const triangleSize = 0.08;
 
 function rotate(v: d.v2f, angle: number) {
-  'use gpu';
+  "use gpu";
   return d.vec2f(
     v.x * std.cos(angle) - v.y * std.sin(angle),
     v.x * std.sin(angle) + v.y * std.cos(angle),
@@ -23,7 +26,7 @@ function rotate(v: d.v2f, angle: number) {
 }
 
 function getRotationFromVelocity(velocity: d.v2f) {
-  'use gpu';
+  "use gpu";
   return -std.atan2(velocity.x, velocity.y);
 }
 
@@ -33,7 +36,7 @@ const Boid = d.struct({
 });
 
 const renderLayout = tgpu.bindGroupLayout({
-  boids: { storage: d.arrayOf(Boid), access: 'readonly' },
+  boids: { storage: d.arrayOf(Boid), access: "readonly" },
   colorPalette: { uniform: d.vec3f },
 });
 
@@ -132,12 +135,12 @@ const presets = {
 
 const computeLayout = tgpu.bindGroupLayout({
   params: { uniform: Params },
-  boids: { storage: d.arrayOf(Boid), access: 'readonly' },
-  nextBoids: { storage: d.arrayOf(Boid), access: 'mutable' },
+  boids: { storage: d.arrayOf(Boid), access: "readonly" },
+  nextBoids: { storage: d.arrayOf(Boid), access: "mutable" },
 });
 
 function mainCompute(boidIdx: number) {
-  'use gpu';
+  "use gpu";
   const params = computeLayout.$.params;
   const currentBoid = computeLayout.$.boids[boidIdx];
   const nextBoid = computeLayout.$.nextBoids[boidIdx];
@@ -181,8 +184,7 @@ function mainCompute(boidIdx: number) {
     separation * params.separationStrength +
     alignment * params.alignmentStrength +
     cohesion * params.cohesionStrength;
-  newVelocity =
-    std.normalize(newVelocity) * std.clamp(std.length(newVelocity), 0, 0.01);
+  newVelocity = std.normalize(newVelocity) * std.clamp(std.length(newVelocity), 0, 0.01);
 
   if (newPosition[0] > 1.0 + triangleSize) {
     newPosition[0] = -1.0 - triangleSize;
@@ -202,7 +204,8 @@ function mainCompute(boidIdx: number) {
 }
 
 export default function Boids() {
-  const root = useRoot();
+  // const root = useRoot();
+  const root = useRootUI();
 
   const paramsUniform = useUniform(Params, { initial: presets.default });
   const colorPaletteUniform = useUniform(d.vec3f, {
@@ -228,12 +231,9 @@ export default function Boids() {
     // biome-ignore lint/correctness/useHookAtTopLevel: it's always 2 calls
     useBuffer(d.arrayOf(Boid, triangleAmount), {
       initial: initialData,
-    }).$usage('storage'),
+    }).$usage("storage"),
   );
-  const computePipeline = useMemo(
-    () => root.createGuardedComputePipeline(mainCompute),
-    [root],
-  );
+  const computePipeline = useMemo(() => root.createGuardedComputePipeline(mainCompute), [root]);
 
   const renderPipeline = useMemo(
     () => root.createRenderPipeline({ vertex: mainVert, fragment: mainFrag }),
@@ -257,7 +257,7 @@ export default function Boids() {
     }),
   );
 
-  const { ref, ctxRef } = useConfigureContext({ alphaMode: 'premultiplied' });
+  const { ref, ctxRef } = useConfigureContext({ alphaMode: "premultiplied" });
 
   const evenRef = useRef(false);
   useFrame(() => {
@@ -285,8 +285,8 @@ export default function Boids() {
     <Canvas
       ref={ref}
       style={{
-        width: width > height ? undefined : '100%',
-        height: width > height ? '100%' : undefined,
+        width: width > height ? undefined : "100%",
+        height: width > height ? "100%" : undefined,
         aspectRatio: 1,
       }}
       transparent

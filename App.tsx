@@ -1,14 +1,11 @@
-import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
-import Animated, { useSharedValue } from 'react-native-reanimated';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from "react";
+import { Pressable, Text, View } from "react-native";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import Animated, { useSharedValue } from "react-native-reanimated";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-// import Boids from "./examples/Boids.tsx";
+import Boids from "./examples/Boids.tsx";
+
 // import Fish from './examples/Fish/Fish.tsx';
 // import FluidDoubleBuffering from './examples/FluidDoubleBuffering.tsx';
 // import FluidWithAtomics from './examples/FluidWithAtomics.tsx';
@@ -16,11 +13,10 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 // import GameOfLife from './examples/GameOfLife.tsx';
 // import Jelly from './examples/Jelly/Jelly.tsx';
 
-const examples = ['🐠', '🚰', '🎮', '📈', '🛁', '🐥', '🪼'] as const;
+const examples = ["🐠", "🚰", "🎮", "📈", "🛁", "🐥", "🪼"] as const;
 
 export default function App() {
-  const [currentExample, setCurrentExample] =
-    useState<(typeof examples)[number]>('🪼');
+  const [currentExample, setCurrentExample] = useState<(typeof examples)[number]>("🪼");
   const isDragging = useSharedValue(false);
   const mousePos = useSharedValue({ x: 0, y: 0 });
   const gesture = Gesture.Pan()
@@ -39,11 +35,11 @@ export default function App() {
       <GestureHandlerRootView>
         <SafeAreaView
           style={{
-            position: 'static',
+            position: "static",
             flex: 1,
-            backgroundColor: 'rgb(239 239 249)',
-            alignItems: 'center',
-            justifyContent: 'center',
+            backgroundColor: "rgb(239 239 249)",
+            alignItems: "center",
+            justifyContent: "center",
             zIndex: 30,
           }}
         >
@@ -51,12 +47,13 @@ export default function App() {
             <Animated.View
               style={{
                 flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'static',
-                width: '100%',
+                alignItems: "center",
+                justifyContent: "center",
+                position: "static",
+                width: "100%",
               }}
             >
+              <Boids />
               {/*{currentExample === '🐥' ? (
                 <Boids />
               ) : currentExample === '🛁' ? (
@@ -76,23 +73,16 @@ export default function App() {
           </GestureDetector>
           <View
             style={{
-              flexDirection: 'row',
+              flexDirection: "row",
               gap: 20,
               paddingVertical: 40,
-              alignItems: 'center',
+              alignItems: "center",
               zIndex: 40,
             }}
           >
             {examples.map((example) => (
-              <Pressable
-                key={example}
-                onPress={() => setCurrentExample(example)}
-              >
-                <Text
-                  style={{ fontSize: currentExample === example ? 50 : 30 }}
-                >
-                  {example}
-                </Text>
+              <Pressable key={example} onPress={() => setCurrentExample(example)}>
+                <Text style={{ fontSize: currentExample === example ? 50 : 30 }}>{example}</Text>
               </Pressable>
             ))}
           </View>

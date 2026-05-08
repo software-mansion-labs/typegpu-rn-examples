@@ -2,16 +2,13 @@
 const workletsPluginOptions = {
   bundleMode: true,
   strictGlobal: false, // optional, but recommended
-  workletizableModules: ['typegpu'],
+  workletizableModules: ["node_modules/typegpu"],
 };
 
 module.exports = (api) => {
   api.cache(true);
   return {
-    presets: ['babel-preset-expo'],
-    plugins: [
-      'unplugin-typegpu/babel',
-      ['react-native-worklets/plugin', workletsPluginOptions],
-    ],
+    presets: ["babel-preset-expo"],
+    plugins: ["unplugin-typegpu/babel", ["react-native-worklets/plugin", workletsPluginOptions]],
   };
 };
